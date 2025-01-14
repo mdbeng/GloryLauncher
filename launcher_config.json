@@ -9,7 +9,7 @@ NOTE: Set it to "false" or only "" to not use the client folder, so everything w
 • executable The path to the client's executable file, represented as "bin/client.exe"
 */
 {
-	"clientVersion": "13.40.e15431",
+	"clientVersion": "13.40.e15532",
 	"launcherVersion": "1.0",
 	"replaceFolders": true,
 	"replaceFolderName": [
@@ -25,5 +25,5 @@ NOTE: Set it to "false" or only "" to not use the client folder, so everything w
 	],
 	"clientFolder": "Glory",
 	"newClientUrl" : "https://github.com/mdbeng/GloryLauncher/releases/download/Client/Glory.zip",
-	"clientExecutable": "Client.exe"
+	"clientExecutable": "zeows.exe"
 }

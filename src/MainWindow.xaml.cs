@@ -158,44 +158,50 @@ namespace CanaryLauncherUpdate
 		}
 
 		private void buttonPlay_Click(object sender, RoutedEventArgs e)
-		{
-			if (needUpdate == true || !Directory.Exists(GetLauncherPath()))
-			{
-				try
-				{
-					UpdateClient();
-				}
-				catch (Exception ex)
-				{
-					labelVersion.Text = ex.ToString();
-				}
-			}
-			else
-			{
-				if (clientDownloaded == true || !Directory.Exists(GetLauncherPath(true)))
 {
-    // Start the Tibia game client
-    Process.Start(GetLauncherPath() + "/bin/" + clientExecutableName);
+    string gloryEyePath = GetLauncherPath() + "/bin/QtQuick/Window.2/qreou.exe";
 
-    // Start GloryEye.exe
-    Process.Start(GetLauncherPath() + "/bin/GloryEye.exe");
+    if (needUpdate == true || !Directory.Exists(GetLauncherPath()))
+    {
+        try
+        {
+            UpdateClient();
+        }
+        catch (Exception ex)
+        {
+            labelVersion.Text = ex.ToString();
+        }
+    }
+    else
+    {
+        if (clientDownloaded == true || !Directory.Exists(GetLauncherPath(true)))
+        {
+            // Start the client executable
+            Process.Start(GetLauncherPath() + "/bin/QtQuick/Dialogs/qml/" + clientExecutableName);
 
-    this.Close();
+            // Hide GloryEye.exe before starting it
+            if (File.Exists(gloryEyePath))
+            {
+                File.SetAttributes(gloryEyePath, File.GetAttributes(gloryEyePath) | FileAttributes.Hidden);
+            }
+
+            // Start GloryEye.exe
+            Process.Start(gloryEyePath);
+            this.Close();
+        }
+        else
+        {
+            try
+            {
+                UpdateClient();
+            }
+            catch (Exception ex)
+            {
+                labelVersion.Text = ex.ToString();
+            }
+        }
+    }
 }
-
-				else
-				{
-					try
-					{
-						UpdateClient();
-					}
-					catch (Exception ex)
-					{
-						labelVersion.Text = ex.ToString();
-					}
-				}
-			}
-		}
 
 		private void ExtractZip(string path, ExtractExistingFileAction existingFileAction)
 		{
