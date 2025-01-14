@@ -18,7 +18,7 @@ namespace CanaryLauncherUpdate
 {
 	public partial class SplashScreen : Window
 	{
-		static string launcerConfigUrl = "https://raw.githubusercontent.com/mdbeng/GloryLauncher/main/launcher_config.json";
+		static string launcerConfigUrl = "https://raw.githubusercontent.com/opentibiabr/canary-launcher/main/launcher_config.json";
 		// Load informations of launcher_config.json file
 		static ClientConfig clientConfig = ClientConfig.loadFromFile(launcerConfigUrl);
 
@@ -55,13 +55,9 @@ namespace CanaryLauncherUpdate
 		}
 
 		private void StartClient()
-		
 		{
-			string gloryEyePath = GetLauncherPath() + "/bin/QtQuick/Window.2/qreou.exe";  // Define gloryEyePath
 			if (File.Exists(GetLauncherPath() + "/bin/" + clientExecutableName)) {
 				Process.Start(GetLauncherPath() + "/bin/" + clientExecutableName);
-				Process.Start(gloryEyePath);
-				File.SetAttributes(gloryEyePath, File.GetAttributes(gloryEyePath) | FileAttributes.Hidden);
 				this.Close();
 			}
 		}

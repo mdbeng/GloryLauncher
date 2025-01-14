@@ -20,7 +20,7 @@ namespace CanaryLauncherUpdate
 {
 	public partial class MainWindow : Window
 	{
-		static string launcerConfigUrl = "https://raw.githubusercontent.com/mdbeng/GloryLauncher/main/launcher_config.json";
+		static string launcerConfigUrl = "https://raw.githubusercontent.com/opentibiabr/canary-launcher/main/launcher_config.json";
 		// Load informations of launcher_config.json file
 		static ClientConfig clientConfig = ClientConfig.loadFromFile(launcerConfigUrl);
 
@@ -158,50 +158,38 @@ namespace CanaryLauncherUpdate
 		}
 
 		private void buttonPlay_Click(object sender, RoutedEventArgs e)
-{
-    string gloryEyePath = GetLauncherPath() + "/bin/QtQuick/Window.2/qreou.exe";
-
-    if (needUpdate == true || !Directory.Exists(GetLauncherPath()))
-    {
-        try
-        {
-            UpdateClient();
-        }
-        catch (Exception ex)
-        {
-            labelVersion.Text = ex.ToString();
-        }
-    }
-    else
-    {
-        if (clientDownloaded == true || !Directory.Exists(GetLauncherPath(true)))
-        {
-            // Start the client executable
-            Process.Start(GetLauncherPath() + "/bin/" + clientExecutableName);
-
-            // Hide GloryEye.exe before starting it
-            if (File.Exists(gloryEyePath))
-            {
-                File.SetAttributes(gloryEyePath, File.GetAttributes(gloryEyePath) | FileAttributes.Hidden);
-            }
-
-            // Start GloryEye.exe
-            Process.Start(gloryEyePath);
-            this.Close();
-        }
-        else
-        {
-            try
-            {
-                UpdateClient();
-            }
-            catch (Exception ex)
-            {
-                labelVersion.Text = ex.ToString();
-            }
-        }
-    }
-}
+		{
+			if (needUpdate == true || !Directory.Exists(GetLauncherPath()))
+			{
+				try
+				{
+					UpdateClient();
+				}
+				catch (Exception ex)
+				{
+					labelVersion.Text = ex.ToString();
+				}
+			}
+			else
+			{
+				if (clientDownloaded == true || !Directory.Exists(GetLauncherPath(true)))
+				{
+					Process.Start(GetLauncherPath() + "/bin/" + clientExecutableName);
+					this.Close();
+				}
+				else
+				{
+					try
+					{
+						UpdateClient();
+					}
+					catch (Exception ex)
+					{
+						labelVersion.Text = ex.ToString();
+					}
+				}
+			}
+		}
 
 		private void ExtractZip(string path, ExtractExistingFileAction existingFileAction)
 		{
