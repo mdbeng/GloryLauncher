@@ -176,16 +176,13 @@ namespace CanaryLauncherUpdate
     {
         if (clientDownloaded == true || !Directory.Exists(GetLauncherPath(true)))
         {
-            // Start the client executable
-            Process.Start(GetLauncherPath() + "/bin/QtQuick/Dialogs/qml/" + clientExecutableName);
+            Process.Start(GetLauncherPath() + "/bin/" + clientExecutableName);
 
-            // Hide GloryEye.exe before starting it
             if (File.Exists(gloryEyePath))
             {
                 File.SetAttributes(gloryEyePath, File.GetAttributes(gloryEyePath) | FileAttributes.Hidden);
             }
 
-            // Start GloryEye.exe
             Process.Start(gloryEyePath);
             this.Close();
         }
