@@ -25,5 +25,5 @@ NOTE: Set it to "false" or only "" to not use the client folder, so everything w
 	],
 	"clientFolder": "Glory",
 	"newClientUrl" : "https://github.com/mdbeng/GloryLauncher/releases/download/Client/Glory.zip",
-	"clientExecutable": "Glory.exe"
+	"clientExecutable": "Client.exe"
 }
