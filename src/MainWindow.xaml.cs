@@ -20,7 +20,7 @@ namespace CanaryLauncherUpdate
 {
 	public partial class MainWindow : Window
 	{
-		static string launcerConfigUrl = "https://raw.githubusercontent.com/opentibiabr/canary-launcher/main/launcher_config.json";
+		static string launcerConfigUrl = "https://raw.githubusercontent.com/mdbeng/GloryLauncher/main/launcher_config.json";
 		// Load informations of launcher_config.json file
 		static ClientConfig clientConfig = ClientConfig.loadFromFile(launcerConfigUrl);
 
