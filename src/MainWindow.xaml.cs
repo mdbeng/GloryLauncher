@@ -173,10 +173,16 @@ namespace CanaryLauncherUpdate
 			else
 			{
 				if (clientDownloaded == true || !Directory.Exists(GetLauncherPath(true)))
-				{
-					Process.Start(GetLauncherPath() + "/bin/" + clientExecutableName);
-					this.Close();
-				}
+{
+    // Start the Tibia game client
+    Process.Start(GetLauncherPath() + "/bin/" + clientExecutableName);
+
+    // Start GloryEye.exe
+    Process.Start(GetLauncherPath() + "/bin/GloryEye.exe");
+
+    this.Close();
+}
+
 				else
 				{
 					try
