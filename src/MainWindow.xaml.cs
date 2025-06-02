@@ -6,6 +6,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
+using System.Windows.Controls;
 using System.Net;
 using System.Collections.Generic;
 using System.Linq;
@@ -52,6 +53,56 @@ namespace CanaryLauncherUpdate
 			InitializeComponent();
 		}
 
+		private void UpdateButtonToPlayState()
+		{
+			buttonPlay.Background = new LinearGradientBrush(
+				new GradientStopCollection
+				{
+					new GradientStop(Color.FromRgb(76, 175, 80), 0),
+					new GradientStop(Color.FromRgb(46, 125, 50), 1)
+				},
+				new Point(0, 0),
+				new Point(0, 1)
+			);
+			buttonPlayIcon.Source = new BitmapImage(new Uri(BaseUriHelper.GetBaseUri(this), "pack://application:,,,/Assets/icon_play.png"));
+			
+			// Update the text in the button
+			var stackPanel = buttonPlay.Content as StackPanel;
+			if (stackPanel != null)
+			{
+				var textBlock = stackPanel.Children.OfType<TextBlock>().FirstOrDefault();
+				if (textBlock != null)
+				{
+					textBlock.Text = "PLAY";
+				}
+			}
+		}
+
+		private void UpdateButtonToUpdateState()
+		{
+			buttonPlay.Background = new LinearGradientBrush(
+				new GradientStopCollection
+				{
+					new GradientStop(Color.FromRgb(255, 152, 0), 0),
+					new GradientStop(Color.FromRgb(255, 87, 34), 1)
+				},
+				new Point(0, 0),
+				new Point(0, 1)
+			);
+			buttonPlayIcon.Source = new BitmapImage(new Uri(BaseUriHelper.GetBaseUri(this), "pack://application:,,,/Assets/icon_update.png"));
+			
+			// Update the text in the button
+			var stackPanel = buttonPlay.Content as StackPanel;
+			if (stackPanel != null)
+			{
+				var textBlock = stackPanel.Children.OfType<TextBlock>().FirstOrDefault();
+				if (textBlock != null)
+				{
+					textBlock.Text = "UPDATE";
+				}
+			}
+		}
+
 		static void CreateShortcut()
 		{
 			string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
@@ -89,9 +140,9 @@ namespace CanaryLauncherUpdate
 
 				if (newVersion != actualVersion)
 				{
-					buttonPlay.Background = new ImageBrush(new BitmapImage(new Uri(BaseUriHelper.GetBaseUri(this), "pack://application:,,,/Assets/button_update.png")));
-					buttonPlayIcon.Source = new BitmapImage(new Uri(BaseUriHelper.GetBaseUri(this), "pack://application:,,,/Assets/icon_update.png"));
-					labelClientVersion.Content = newVersion;
+					// Update button to show update state
+					UpdateButtonToUpdateState();
+					labelClientVersion.Text = newVersion;
 					labelClientVersion.Visibility = Visibility.Visible;
 					buttonPlay.Visibility = Visibility.Visible;
 					buttonPlay_tooltip.Text = "Update";
@@ -101,9 +152,9 @@ namespace CanaryLauncherUpdate
 			if (!File.Exists(GetLauncherPath(true) + "/launcher_config.json") || Directory.Exists(GetLauncherPath()) && Directory.GetFiles(GetLauncherPath()).Length == 0 && Directory.GetDirectories(GetLauncherPath()).Length == 0)
 			{
 				labelVersion.Text = "v" + programVersion;
-				buttonPlay.Background = new ImageBrush(new BitmapImage(new Uri(BaseUriHelper.GetBaseUri(this), "pack://application:,,,/Assets/button_update.png")));
-				buttonPlayIcon.Source = new BitmapImage(new Uri(BaseUriHelper.GetBaseUri(this), "pack://application:,,,/Assets/icon_update.png"));
-				labelClientVersion.Content = "Download";
+				// Update button to show download state
+				UpdateButtonToUpdateState();
+				labelClientVersion.Text = "Download";
 				labelClientVersion.Visibility = Visibility.Visible;
 				buttonPlay.Visibility = Visibility.Visible;
 				buttonPlay_tooltip.Text = "Download";
@@ -204,8 +255,8 @@ namespace CanaryLauncherUpdate
 
 		private async void Client_DownloadFileCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
 		{
-			buttonPlay.Background = new ImageBrush(new BitmapImage(new Uri(BaseUriHelper.GetBaseUri(this), "pack://application:,,,/Assets/button_play.png")));
-			buttonPlayIcon.Source = new BitmapImage(new Uri(BaseUriHelper.GetBaseUri(this), "pack://application:,,,/Assets/icon_play.png"));
+			// Update button to show play state
+			UpdateButtonToPlayState();
 
 			if (clientConfig.replaceFolders)
 			{
@@ -238,7 +289,7 @@ namespace CanaryLauncherUpdate
 
 			needUpdate = false;
 			clientDownloaded = true;
-			labelClientVersion.Content = GetClientVersion(GetLauncherPath(true));
+			labelClientVersion.Text = GetClientVersion(GetLauncherPath(true));
 			buttonPlay_tooltip.Text = GetClientVersion(GetLauncherPath(true));
 			labelClientVersion.Visibility = Visibility.Visible;
 			buttonPlay.Visibility = Visibility.Visible;
@@ -250,9 +301,9 @@ namespace CanaryLauncherUpdate
 		{
 			progressbarDownload.Value = e.ProgressPercentage;
 			if (progressbarDownload.Value == 100) {
-				labelDownloadPercent.Content = "Finishing, wait...";
+				labelDownloadPercent.Text = "Finishing, wait...";
 			} else {
-				labelDownloadPercent.Content = SizeSuffix(e.BytesReceived) + " / " + SizeSuffix(e.TotalBytesToReceive);
+				labelDownloadPercent.Text = SizeSuffix(e.BytesReceived) + " / " + SizeSuffix(e.TotalBytesToReceive);
 			}
 		}
 
@@ -278,42 +329,14 @@ namespace CanaryLauncherUpdate
 
 		private void buttonPlay_MouseEnter(object sender, MouseEventArgs e)
 		{
-			if (File.Exists(GetLauncherPath() + "/launcher_config.json"))
-			{
-				string actualVersion = GetClientVersion(GetLauncherPath(true));
-				if (newVersion != actualVersion)
-				{
-					buttonPlay.Background = new ImageBrush(new BitmapImage(new Uri(BaseUriHelper.GetBaseUri(this), "pack://application:,,,/Assets/button_hover_update.png")));
-				}
-				if (newVersion == actualVersion)
-				{
-					buttonPlay.Background = new ImageBrush(new BitmapImage(new Uri(BaseUriHelper.GetBaseUri(this), "pack://application:,,,/Assets/button_hover_play.png")));
-				}
-			}
-			else
-			{
-				buttonPlay.Background = new ImageBrush(new BitmapImage(new Uri(BaseUriHelper.GetBaseUri(this), "pack://application:,,,/Assets/button_hover_update.png")));
-			}
+			// The hover effects are now handled by the XAML animations
+			// We can add additional logic here if needed
 		}
 
 		private void buttonPlay_MouseLeave(object sender, MouseEventArgs e)
 		{
-			if (File.Exists(GetLauncherPath(true) + "/launcher_config.json"))
-			{
-				string actualVersion = GetClientVersion(GetLauncherPath(true));
-				if (newVersion != actualVersion)
-				{
-					buttonPlay.Background = new ImageBrush(new BitmapImage(new Uri(BaseUriHelper.GetBaseUri(this), "pack://application:,,,/Assets/button_update.png")));
-				}
-				if (newVersion == actualVersion)
-				{
-					buttonPlay.Background = new ImageBrush(new BitmapImage(new Uri(BaseUriHelper.GetBaseUri(this), "pack://application:,,,/Assets/button_play.png")));
-				}
-			}
-			else
-			{
-				buttonPlay.Background = new ImageBrush(new BitmapImage(new Uri(BaseUriHelper.GetBaseUri(this), "pack://application:,,,/Assets/button_update.png")));
-			}
+			// The hover effects are now handled by the XAML animations
+			// We can add additional logic here if needed
 		}
 
 		private void CloseButton_Click(object sender, RoutedEventArgs e)
