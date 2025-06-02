@@ -16,6 +16,8 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Ionic.Zip;
 using LauncherConfig;
+using System.Windows.Documents;
+using System.Windows.Media;
 
 namespace CanaryLauncherUpdate
 {
@@ -32,6 +34,8 @@ namespace CanaryLauncherUpdate
 		string newVersion = "";
 		bool clientDownloaded = false;
 		bool needUpdate = false;
+		private List<NewsItem> currentNewsItems = new List<NewsItem>();
+		private int currentNewsIndex = 0;
 
 		static readonly HttpClient httpClient = new HttpClient();
 		WebClient webClient = new WebClient();
@@ -122,7 +126,7 @@ namespace CanaryLauncherUpdate
 			}
 		}
 
-		private void TibiaLauncher_Load(object sender, RoutedEventArgs e)
+		private async void TibiaLauncher_Load(object sender, RoutedEventArgs e)
 		{
 			ImageLogoServer.Source = new BitmapImage(new Uri(BaseUriHelper.GetBaseUri(this), "pack://application:,,,/Assets/logo.png"));
 			ImageLogoCompany.Source = new BitmapImage(new Uri(BaseUriHelper.GetBaseUri(this), "pack://application:,,,/Assets/logo_company.png"));
@@ -131,6 +135,9 @@ namespace CanaryLauncherUpdate
 			progressbarDownload.Visibility = Visibility.Collapsed;
 			labelClientVersion.Visibility = Visibility.Collapsed;
 			labelDownloadPercent.Visibility = Visibility.Collapsed;
+
+			// Load news asynchronously
+			await LoadNewsAsync();
 
 			if (File.Exists(GetLauncherPath(true) + "/launcher_config.json"))
 			{
@@ -358,6 +365,134 @@ namespace CanaryLauncherUpdate
 		private void MinimizeButton_Click(object sender, RoutedEventArgs e)
 		{
 			WindowState = WindowState.Minimized;
+		}
+
+		private async void HintsBox_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+		{
+			// Right-click to refresh news
+			await LoadNewsAsync();
+		}
+
+		private async void HintsBox_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+		{
+			// Check if we have news items
+			if (currentNewsItems != null && currentNewsItems.Count > 0)
+			{
+				try
+				{
+					// Open the current news item
+					await OpenNewsUrl(currentNewsItems[currentNewsIndex].Url);
+					
+					// Move to next news item for next click
+					currentNewsIndex = (currentNewsIndex + 1) % currentNewsItems.Count;
+					
+					// Update display to show which news will be opened next
+					UpdateNewsDisplay();
+				}
+				catch (Exception)
+				{
+					// If opening URL fails, refresh news instead
+					await LoadNewsAsync();
+				}
+			}
+			else
+			{
+				// If no news items, refresh news
+				await LoadNewsAsync();
+			}
+		}
+
+		private void UpdateNewsDisplay()
+		{
+			if (currentNewsItems != null && currentNewsItems.Count > 0)
+			{
+				// Update the display to highlight which news will be opened next
+				string formattedNews = NewsService.FormatNewsForDisplayWithHighlight(currentNewsItems, currentNewsIndex);
+				Dispatcher.Invoke(() =>
+				{
+					hintsBox.Text = formattedNews;
+				});
+			}
+		}
+
+		private async Task OpenNewsUrl(string url)
+		{
+			try
+			{
+				if (!url.StartsWith("http"))
+				{
+					url = "https://gloryot.com/" + url.TrimStart('?');
+				}
+				
+				// Open the URL in the default browser
+				Process.Start(new ProcessStartInfo
+				{
+					FileName = url,
+					UseShellExecute = true
+				});
+			}
+			catch (Exception)
+			{
+				// If opening URL fails, refresh news instead
+				await LoadNewsAsync();
+			}
+		}
+
+		private async Task LoadNewsAsync()
+		{
+			try
+			{
+				// Show loading message
+				hintsBox.Text = "Loading news...";
+
+				// Fetch news from the website
+				var newsItems = await NewsService.FetchNewsAsync();
+				
+				// Store the news items for click handling
+				currentNewsItems = newsItems;
+				currentNewsIndex = 0; // Reset to first news item
+				
+				// Format and display the news with highlight
+				string formattedNews = NewsService.FormatNewsForDisplayWithHighlight(newsItems, currentNewsIndex);
+				
+				// Update the UI on the main thread
+				Dispatcher.Invoke(() =>
+				{
+					hintsBox.Text = formattedNews;
+				});
+			}
+			catch (Exception)
+			{
+				// Fallback to default content if news loading fails
+				currentNewsItems = new List<NewsItem>();
+				currentNewsIndex = 0;
+				Dispatcher.Invoke(() =>
+				{
+					hintsBox.Text = GetDefaultNewsContent();
+				});
+			}
+		}
+
+		private string GetDefaultNewsContent()
+		{
+			return "🏆 BIENVENIDOS A GLORYOT!\n\n" +
+				   "🎮 Nuevas Características:\n" +
+				   "• Sistema de Battle Royale mejorado\n" +
+				   "• Duelos 1 vs 1 con ranking\n" +
+				   "• Nuevas zonas de PvP y eventos\n" +
+				   "• Sistema de guilds renovado\n\n" +
+				   "⚡ Actualizaciones Recientes:\n" +
+				   "• Balance de clases mejorado\n" +
+				   "• Nuevos items y equipamiento épico\n" +
+				   "• Optimización de rendimiento\n" +
+				   "• Corrección de bugs críticos\n\n" +
+				   "⚠️ Importante:\n" +
+				   "GloryOT puede ser peligroso. ¡Mantente alerta!\n\n" +
+				   "📅 Próximos Eventos:\n" +
+				   "• Torneo de guilds este fin de semana\n" +
+				   "• Evento de experiencia doble\n" +
+				   "• Nueva quest épica disponible\n\n" +
+				   "Servidor en constante desarrollo y mejora.";
 		}
 
 	}

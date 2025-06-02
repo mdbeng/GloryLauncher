@@ -462,30 +462,19 @@
 									FontFamily="Segoe UI"
 									FontSize="12"
 									LineHeight="18"
-									TextWrapping="Wrap">
-									<Run FontWeight="Bold" Foreground="#FFD700" FontSize="14">¡Bienvenidos a GloryOT!</Run><LineBreak/><LineBreak/>
-									
-									<Run FontWeight="SemiBold" Foreground="#4CAF50">🎮 Nuevas Características:</Run><LineBreak/>
-									• Sistema de <Run FontWeight="SemiBold" Foreground="#4CAF50">Battle Royale</Run> mejorado<LineBreak/>
-									• Duelos <Run FontWeight="SemiBold" Foreground="#FF5722">1 vs 1</Run> con ranking<LineBreak/>
-									• Nuevas zonas de PvP y eventos<LineBreak/>
-									• Sistema de guilds renovado<LineBreak/><LineBreak/>
-									
-									<Run FontWeight="SemiBold" Foreground="#FFD700">⚡ Actualizaciones Recientes:</Run><LineBreak/>
-									• Balance de clases mejorado<LineBreak/>
-									• Nuevos items y equipamiento épico<LineBreak/>
-									• Optimización de rendimiento<LineBreak/>
-									• Corrección de bugs críticos<LineBreak/><LineBreak/>
-									
-									<Run FontWeight="SemiBold" Foreground="#FF9800">⚠️ Importante:</Run><LineBreak/>
-									GloryOT puede ser peligroso. ¡Mantente alerta!<LineBreak/><LineBreak/>
-									
-									<Run FontWeight="SemiBold" Foreground="#9C27B0">📅 Próximos Eventos:</Run><LineBreak/>
-									• Torneo de guilds este fin de semana<LineBreak/>
-									• Evento de experiencia doble<LineBreak/>
-									• Nueva quest épica disponible<LineBreak/><LineBreak/>
-									
-									<Run FontStyle="Italic" Foreground="#C0C0C0" FontSize="11">Servidor en constante desarrollo y mejora.</Run>
+									TextWrapping="Wrap"
+									Text="Loading news..."
+									Cursor="Hand"
+									MouseLeftButtonDown="HintsBox_MouseLeftButtonDown"
+									MouseRightButtonDown="HintsBox_MouseRightButtonDown">
+									<TextBlock.ToolTip>
+										<ToolTip Background="#2a2a2a" BorderBrush="#555" Foreground="White">
+											<StackPanel>
+												<TextBlock Text="Left-click: Open latest news in browser" FontWeight="Bold"/>
+												<TextBlock Text="Right-click: Refresh news" FontSize="10" Foreground="#C0C0C0"/>
+											</StackPanel>
+										</ToolTip>
+									</TextBlock.ToolTip>
 								</TextBlock>
 							</ScrollViewer>
 						</Grid>
