@@ -19,11 +19,8 @@
 		Title="Glory Launcher"
 		Loaded="TibiaLauncher_Load"
 		AllowsTransparency="True">
-	<!-- Main Container with rounded corners and shadow -->
+	<!-- Main Container with rounded corners -->
 	<Border CornerRadius="15" Background="#1a1a1a" BorderBrush="#333" BorderThickness="1">
-		<Border.Effect>
-			<DropShadowEffect Color="Black" Direction="270" ShadowDepth="10" Opacity="0.8" BlurRadius="20"/>
-		</Border.Effect>
 		
 		<Grid>
 			<Grid.ColumnDefinitions>
@@ -86,13 +83,13 @@
 			
 			<!-- Background with overlay -->
 			<Grid Grid.RowSpan="5">
-				<Border CornerRadius="15">
+				<Border CornerRadius="15" ClipToBounds="True">
 					<Border.Background>
 						<ImageBrush ImageSource="{StaticResource BackGroundKey}" Stretch="UniformToFill"/>
 					</Border.Background>
 				</Border>
 				<!-- Dark overlay for better contrast -->
-				<Border CornerRadius="15" Background="#40000000"/>
+				<Border CornerRadius="15" Background="#40000000" ClipToBounds="True"/>
 			</Grid>
 			
 			<!-- Window Controls (No Header Bar) -->
@@ -144,237 +141,355 @@
 					</Image>
 				</Border>
 			</Grid>
-		<!-- Play Button Section -->
-		<Grid Grid.Row="2">
-		<StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-		<Button
-		x:Name="buttonPlay"
-		Width="160"
-		Height="55"
-		BorderThickness="0"
-		Cursor="Hand"
-		BorderBrush="{x:Null}"
-		Visibility="Visible"
-		Click="buttonPlay_Click"
-		MouseLeave="buttonPlay_MouseLeave"
-		MouseEnter="buttonPlay_MouseEnter"
-		RenderTransformOrigin="0.5,0.5">
-						
-						<Button.RenderTransform>
-							<ScaleTransform/>
-						</Button.RenderTransform>
-
-						<Button.Background>
-							<LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-								<GradientStop Color="#4CAF50" Offset="0"/>
-								<GradientStop Color="#2E7D32" Offset="1"/>
-							</LinearGradientBrush>
-						</Button.Background>
-
-						<Button.ToolTip>
-							<ToolTip Background="#2a2a2a" BorderBrush="#555" Foreground="White">
-								<TextBlock
-									x:Name="buttonPlay_tooltip"
-									FontWeight="Bold"
-									Text="Play Game">
-								</TextBlock>
-							</ToolTip>
-						</Button.ToolTip>
-
-						<Button.Content>
-							<StackPanel Orientation="Horizontal">
-								<Image
-									x:Name="buttonPlayIcon"
-									Source="{StaticResource IconPlayKey}"
-									Stretch="Uniform"
-									Height="24"
-									Margin="0,0,8,0"/>
-								<TextBlock Text="PLAY" 
-										  FontWeight="Bold" 
-										  FontSize="14" 
-										  Foreground="White" 
-										  VerticalAlignment="Center"/>
-							</StackPanel>
-						</Button.Content>
-						
-						<Button.Style>
-							<Style TargetType="{x:Type Button}">
-								<Setter Property="Template">
-									<Setter.Value>
-										<ControlTemplate TargetType="{x:Type Button}">
-											<Border Background="{TemplateBinding Background}" 
-													CornerRadius="8"
-													BorderBrush="#66ffffff"
-													BorderThickness="1">
-												<Border.Effect>
-													<DropShadowEffect Color="Black" Direction="270" ShadowDepth="2" Opacity="0.3" BlurRadius="5"/>
-												</Border.Effect>
-												<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-											</Border>
-										</ControlTemplate>
-									</Setter.Value>
-								</Setter>
-								<Style.Triggers>
-									<Trigger Property="IsMouseOver" Value="True">
-										<Trigger.EnterActions>
-											<BeginStoryboard Storyboard="{StaticResource ButtonHoverIn}"/>
-										</Trigger.EnterActions>
-										<Trigger.ExitActions>
-											<BeginStoryboard Storyboard="{StaticResource ButtonHoverOut}"/>
-										</Trigger.ExitActions>
-									</Trigger>
-								</Style.Triggers>
-							</Style>
-						</Button.Style>
-					</Button>
-				<!-- Enhanced Progress Bar -->
-					<ProgressBar
-						x:Name="progressbarDownload"
-						Width="160"
-						Height="8"
-						Margin="0, 15, 0, 0"
-						Value="100"
-						Visibility="Collapsed"
-						Background="#33ffffff"
-						BorderThickness="0">
-						<ProgressBar.Foreground>
-							<LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-								<GradientStop Color="#FFD700" Offset="0" />
-								<GradientStop Color="#FFA500" Offset="1" />
-							</LinearGradientBrush>
-						</ProgressBar.Foreground>
-						<ProgressBar.Style>
-							<Style TargetType="ProgressBar">
-								<Setter Property="Template">
-									<Setter.Value>
-										<ControlTemplate TargetType="ProgressBar">
-											<Border Background="{TemplateBinding Background}" 
-													CornerRadius="4"
-													BorderThickness="0">
-												<Grid>
-													<Border Name="PART_Track" 
-															Background="{TemplateBinding Background}" 
-															CornerRadius="4"/>
-													<Border Name="PART_Indicator" 
-															Background="{TemplateBinding Foreground}" 
-															CornerRadius="4"
-															HorizontalAlignment="Left"/>
-												</Grid>
-											</Border>
-										</ControlTemplate>
-									</Setter.Value>
-								</Setter>
-							</Style>
-						</ProgressBar.Style>
-					</ProgressBar>
+		<!-- Button Section - Under News Box -->
+			<Grid Grid.Row="3" Grid.RowSpan="2">
+				<StackPanel VerticalAlignment="Bottom" 
+							HorizontalAlignment="Right" 
+							Margin="0,0,50,20">
 					
-					<!-- Enhanced Labels -->
-					<TextBlock
-						x:Name="labelClientVersion"
-						FontFamily="Segoe UI"
-						FontSize="12"
-						FontWeight="SemiBold"
-						Foreground="#E0E0E0"
-						HorizontalAlignment="Center"
-						Margin="0, 10, 0, 0"
-						Visibility="Visible"
-						Text="Client Version"/>
-					<TextBlock
-						x:Name="labelDownloadPercent"
-						FontFamily="Segoe UI"
-						FontSize="10"
-						FontWeight="Medium"
-						Foreground="#B0B0B0"
-						HorizontalAlignment="Center"
-						Margin="0, 5, 0, 0"
-						Visibility="Collapsed"
-						Text="Download"/>
-				</StackPanel>
-			</Grid>
-		<!-- News/Hints Section -->
-			<Grid Grid.Row="3">
-				<Border
-					Width="700"
-					Height="100"
-					VerticalAlignment="Center"
-					HorizontalAlignment="Center"
-					CornerRadius="12"
-					Background="#15ffffff"
-					BorderBrush="#30ffffff"
-					BorderThickness="1">
-				<Border.Effect>
-					<DropShadowEffect Color="Black" Direction="270" ShadowDepth="3" Opacity="0.2" BlurRadius="8"/>
-				</Border.Effect>
-
-				<Grid Margin="15">
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="*"/>
-					</Grid.ColumnDefinitions>
-
-					<Grid.RowDefinitions>
-						<RowDefinition Height="25"/>
-						<RowDefinition Height="*"/>
-					</Grid.RowDefinitions>
-
-					<!-- Enhanced Header -->
-					<Border Grid.Row="0" 
-							Background="#20FFD700" 
-							CornerRadius="8" 
-							HorizontalAlignment="Center" 
-							Padding="12,4">
-						<TextBlock
-							VerticalAlignment="Center"
-							HorizontalAlignment="Center"
-							FontFamily="Segoe UI"
-							FontSize="13"
-							FontWeight="Bold"
-							Foreground="#FFD700"
-							Text="🏆 GLORY NEWS"/>
-					</Border>
-					
-					<Grid Grid.Row="1" Margin="0,8,0,0">
+					<!-- Buttons Container -->
+					<Grid Width="400" Margin="0,0,0,10">
 						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="70"/>
+							<ColumnDefinition Width="*"/>
+							<ColumnDefinition Width="10"/>
+							<ColumnDefinition Width="*"/>
+						</Grid.ColumnDefinitions>
+						
+						<!-- Buy Glory Coins Button -->
+						<Button
+							Grid.Column="0"
+							x:Name="buttonBuyCoins"
+							Height="55"
+							BorderThickness="0"
+							Cursor="Hand"
+							BorderBrush="{x:Null}"
+							Visibility="Visible"
+							RenderTransformOrigin="0.5,0.5">
+							
+							<Button.RenderTransform>
+								<ScaleTransform/>
+							</Button.RenderTransform>
+
+							<Button.Background>
+								<LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+									<GradientStop Color="#FFD700" Offset="0"/>
+									<GradientStop Color="#FFA500" Offset="1"/>
+								</LinearGradientBrush>
+							</Button.Background>
+
+							<Button.ToolTip>
+								<ToolTip Background="#2a2a2a" BorderBrush="#555" Foreground="White">
+									<TextBlock
+										FontWeight="Bold"
+										Text="Buy Glory Coins">
+									</TextBlock>
+								</ToolTip>
+							</Button.ToolTip>
+
+							<Button.Content>
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Text="💰" 
+											  FontSize="20" 
+											  Margin="0,0,8,0"
+											  VerticalAlignment="Center"/>
+									<TextBlock Text="BUY COINS" 
+											  FontWeight="Bold" 
+											  FontSize="14" 
+											  Foreground="#1a1a1a" 
+											  VerticalAlignment="Center"/>
+								</StackPanel>
+							</Button.Content>
+							
+							<Button.Style>
+								<Style TargetType="{x:Type Button}">
+									<Setter Property="Template">
+										<Setter.Value>
+											<ControlTemplate TargetType="{x:Type Button}">
+												<Border Background="{TemplateBinding Background}" 
+														CornerRadius="12"
+														BorderBrush="#66ffffff"
+														BorderThickness="1">
+													<Border.Effect>
+														<DropShadowEffect Color="Black" Direction="270" ShadowDepth="3" Opacity="0.4" BlurRadius="8"/>
+													</Border.Effect>
+													<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+												</Border>
+											</ControlTemplate>
+										</Setter.Value>
+									</Setter>
+									<Style.Triggers>
+										<Trigger Property="IsMouseOver" Value="True">
+											<Trigger.EnterActions>
+												<BeginStoryboard Storyboard="{StaticResource ButtonHoverIn}"/>
+											</Trigger.EnterActions>
+											<Trigger.ExitActions>
+												<BeginStoryboard Storyboard="{StaticResource ButtonHoverOut}"/>
+											</Trigger.ExitActions>
+										</Trigger>
+									</Style.Triggers>
+								</Style>
+							</Button.Style>
+						</Button>
+						
+						<!-- Play Button -->
+						<Button
+							Grid.Column="2"
+							x:Name="buttonPlay"
+							Height="55"
+							BorderThickness="0"
+							Cursor="Hand"
+							BorderBrush="{x:Null}"
+							Visibility="Visible"
+							Click="buttonPlay_Click"
+							MouseLeave="buttonPlay_MouseLeave"
+							MouseEnter="buttonPlay_MouseEnter"
+							RenderTransformOrigin="0.5,0.5">
+		
+		<Button.RenderTransform>
+		<ScaleTransform/>
+		</Button.RenderTransform>
+		
+		<Button.Background>
+		<LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+		<GradientStop Color="#4CAF50" Offset="0"/>
+		<GradientStop Color="#2E7D32" Offset="1"/>
+		</LinearGradientBrush>
+		</Button.Background>
+		
+		<Button.ToolTip>
+		<ToolTip Background="#2a2a2a" BorderBrush="#555" Foreground="White">
+		<TextBlock
+		x:Name="buttonPlay_tooltip"
+		FontWeight="Bold"
+		Text="Play Game">
+		</TextBlock>
+		</ToolTip>
+		</Button.ToolTip>
+		
+		<Button.Content>
+		<StackPanel Orientation="Horizontal">
+		<Image
+		x:Name="buttonPlayIcon"
+		Source="{StaticResource IconPlayKey}"
+		Stretch="Uniform"
+		Height="28"
+		Margin="0,0,12,0"/>
+		<TextBlock Text="PLAY GLORY" 
+		FontWeight="Bold" 
+		FontSize="16" 
+		Foreground="White" 
+		VerticalAlignment="Center"/>
+		</StackPanel>
+		</Button.Content>
+		
+		<Button.Style>
+		<Style TargetType="{x:Type Button}">
+		<Setter Property="Template">
+		<Setter.Value>
+		<ControlTemplate TargetType="{x:Type Button}">
+		<Border Background="{TemplateBinding Background}" 
+		CornerRadius="12"
+		BorderBrush="#66ffffff"
+		BorderThickness="1">
+		<Border.Effect>
+		<DropShadowEffect Color="Black" Direction="270" ShadowDepth="3" Opacity="0.4" BlurRadius="8"/>
+		</Border.Effect>
+		<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+		</Border>
+		</ControlTemplate>
+		</Setter.Value>
+		</Setter>
+		<Style.Triggers>
+		<Trigger Property="IsMouseOver" Value="True">
+		<Trigger.EnterActions>
+		<BeginStoryboard Storyboard="{StaticResource ButtonHoverIn}"/>
+		</Trigger.EnterActions>
+		<Trigger.ExitActions>
+		<BeginStoryboard Storyboard="{StaticResource ButtonHoverOut}"/>
+		</Trigger.ExitActions>
+		</Trigger>
+		</Style.Triggers>
+		</Style>
+		</Button.Style>
+						</Button>
+					</Grid>
+		
+		<!-- Enhanced Progress Bar -->
+		<ProgressBar
+		x:Name="progressbarDownload"
+		Width="400"
+		Height="10"
+		Margin="0, 15, 0, 0"
+		Value="100"
+		Visibility="Collapsed"
+		Background="#33ffffff"
+		BorderThickness="0">
+		<ProgressBar.Foreground>
+		<LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+		<GradientStop Color="#FFD700" Offset="0" />
+		<GradientStop Color="#FFA500" Offset="1" />
+		</LinearGradientBrush>
+		</ProgressBar.Foreground>
+		<ProgressBar.Style>
+		<Style TargetType="ProgressBar">
+		<Setter Property="Template">
+		<Setter.Value>
+		<ControlTemplate TargetType="ProgressBar">
+		<Border Background="{TemplateBinding Background}" 
+		CornerRadius="5"
+		BorderThickness="0">
+		<Grid>
+		<Border Name="PART_Track" 
+		Background="{TemplateBinding Background}" 
+		CornerRadius="5"/>
+		<Border Name="PART_Indicator" 
+		Background="{TemplateBinding Foreground}" 
+		CornerRadius="5"
+		HorizontalAlignment="Left"/>
+		</Grid>
+		</Border>
+		</ControlTemplate>
+		</Setter.Value>
+		</Setter>
+		</Style>
+		</ProgressBar.Style>
+		</ProgressBar>
+		
+		<!-- Enhanced Labels -->
+		<TextBlock
+		x:Name="labelClientVersion"
+		FontFamily="Segoe UI"
+		FontSize="12"
+		FontWeight="SemiBold"
+		Foreground="#E0E0E0"
+		HorizontalAlignment="Center"
+		Margin="0, 10, 0, 0"
+		Visibility="Visible"
+		Text="Client Version"/>
+		<TextBlock
+		x:Name="labelDownloadPercent"
+		FontFamily="Segoe UI"
+		FontSize="11"
+		FontWeight="Medium"
+		Foreground="#B0B0B0"
+		HorizontalAlignment="Center"
+		Margin="0, 5, 0, 0"
+		Visibility="Collapsed"
+		Text="Download"/>
+		</StackPanel>
+		</Grid>
+		<!-- News/Hints Section - Right Side -->
+			<Grid Grid.Row="1" Grid.RowSpan="3">
+				<Border
+					Width="400"
+					Height="280"
+					VerticalAlignment="Top"
+					HorizontalAlignment="Right"
+					Margin="0,20,50,0"
+					CornerRadius="15">
+					<Border.Background>
+						<LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+							<GradientStop Color="#2a2a2a" Offset="0"/>
+							<GradientStop Color="#1e1e1e" Offset="1"/>
+						</LinearGradientBrush>
+					</Border.Background>
+					<Border.Effect>
+						<DropShadowEffect Color="Black" Direction="270" ShadowDepth="8" Opacity="0.6" BlurRadius="20"/>
+					</Border.Effect>
+
+					<Grid Margin="20">
+						<Grid.ColumnDefinitions>
 							<ColumnDefinition Width="*"/>
 						</Grid.ColumnDefinitions>
 
-						<!-- Enhanced Character Image -->
-						<Border Grid.Column="0" 
-								CornerRadius="8" 
-								Background="#10ffffff"
-								Padding="5">
-							<Image
-								Source="{StaticResource RhLoreKey}"
-								Width="50"
-								Stretch="Uniform">
-								<Image.Effect>
-									<DropShadowEffect Color="#FFD700" Direction="0" ShadowDepth="0" Opacity="0.3" BlurRadius="8"/>
-								</Image.Effect>
-							</Image>
+						<Grid.RowDefinitions>
+							<RowDefinition Height="40"/>
+							<RowDefinition Height="*"/>
+						</Grid.RowDefinitions>
+
+						<!-- Enhanced Header -->
+						<Border Grid.Row="0" 
+								CornerRadius="10" 
+								HorizontalAlignment="Stretch" 
+								Padding="15,8">
+							<Border.Background>
+								<LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+									<GradientStop Color="#FFD700" Offset="0"/>
+									<GradientStop Color="#FFA500" Offset="1"/>
+								</LinearGradientBrush>
+							</Border.Background>
+							<TextBlock
+								VerticalAlignment="Center"
+								HorizontalAlignment="Center"
+								FontFamily="Segoe UI"
+								FontSize="15"
+								FontWeight="Bold"
+								Foreground="#1a1a1a"
+								Text="🏆 GLORY NEWS &amp; UPDATES"/>
 						</Border>
 						
-						<!-- Enhanced Text Content -->
-						<ScrollViewer Grid.Column="1" 
-									  Margin="10,0,0,0" 
-									  VerticalScrollBarVisibility="Auto"
-									  HorizontalScrollBarVisibility="Disabled">
-							<TextBlock
-								x:Name="hintsBox"
-								Foreground="#E0E0E0"
-								FontFamily="Segoe UI"
-								FontSize="11"
-								LineHeight="16"
-								TextWrapping="Wrap">
-								<Run FontWeight="SemiBold" Foreground="#FFD700">¡Bienvenidos a GloryOT!</Run><LineBreak/>
-								La meta siempre será hacer una experiencia duradera.<LineBreak/>
-								Disfruta de nuestros sistemas únicos como <Run FontWeight="SemiBold" Foreground="#4CAF50">Battle Royale</Run><LineBreak/>
-								o incluso el sistema de <Run FontWeight="SemiBold" Foreground="#FF5722">duelos 1 vs 1</Run>.<LineBreak/>
-								<Run FontWeight="SemiBold" Foreground="#FFD700">¡Buena suerte!</Run> Cuidado, GloryOT puede ser peligroso.<LineBreak/>
-								<Run FontStyle="Italic" Foreground="#B0B0B0">Estamos en constante desarrollo.</Run>
-							</TextBlock>
-						</ScrollViewer>
+						<Grid Grid.Row="1" Margin="0,15,0,0">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="80"/>
+								<ColumnDefinition Width="*"/>
+							</Grid.ColumnDefinitions>
+
+							<!-- Enhanced Character Image -->
+							<Border Grid.Column="0" 
+									CornerRadius="10" 
+									Background="#3a3a3a"
+									Padding="8"
+									VerticalAlignment="Top"
+									Margin="0,0,0,0">
+								<Image
+									Source="{StaticResource RhLoreKey}"
+									Width="60"
+									Stretch="Uniform">
+									<Image.Effect>
+										<DropShadowEffect Color="#FFD700" Direction="0" ShadowDepth="0" Opacity="0.5" BlurRadius="10"/>
+									</Image.Effect>
+								</Image>
+							</Border>
+							
+							<!-- Enhanced Text Content -->
+							<ScrollViewer Grid.Column="1" 
+										  Margin="15,0,10,10" 
+										  VerticalScrollBarVisibility="Auto"
+										  HorizontalScrollBarVisibility="Disabled">
+								<TextBlock
+									x:Name="hintsBox"
+									Foreground="#F0F0F0"
+									FontFamily="Segoe UI"
+									FontSize="12"
+									LineHeight="18"
+									TextWrapping="Wrap">
+									<Run FontWeight="Bold" Foreground="#FFD700" FontSize="14">¡Bienvenidos a GloryOT!</Run><LineBreak/><LineBreak/>
+									
+									<Run FontWeight="SemiBold" Foreground="#4CAF50">🎮 Nuevas Características:</Run><LineBreak/>
+									• Sistema de <Run FontWeight="SemiBold" Foreground="#4CAF50">Battle Royale</Run> mejorado<LineBreak/>
+									• Duelos <Run FontWeight="SemiBold" Foreground="#FF5722">1 vs 1</Run> con ranking<LineBreak/>
+									• Nuevas zonas de PvP y eventos<LineBreak/>
+									• Sistema de guilds renovado<LineBreak/><LineBreak/>
+									
+									<Run FontWeight="SemiBold" Foreground="#FFD700">⚡ Actualizaciones Recientes:</Run><LineBreak/>
+									• Balance de clases mejorado<LineBreak/>
+									• Nuevos items y equipamiento épico<LineBreak/>
+									• Optimización de rendimiento<LineBreak/>
+									• Corrección de bugs críticos<LineBreak/><LineBreak/>
+									
+									<Run FontWeight="SemiBold" Foreground="#FF9800">⚠️ Importante:</Run><LineBreak/>
+									GloryOT puede ser peligroso. ¡Mantente alerta!<LineBreak/><LineBreak/>
+									
+									<Run FontWeight="SemiBold" Foreground="#9C27B0">📅 Próximos Eventos:</Run><LineBreak/>
+									• Torneo de guilds este fin de semana<LineBreak/>
+									• Evento de experiencia doble<LineBreak/>
+									• Nueva quest épica disponible<LineBreak/><LineBreak/>
+									
+									<Run FontStyle="Italic" Foreground="#C0C0C0" FontSize="11">Servidor en constante desarrollo y mejora.</Run>
+								</TextBlock>
+							</ScrollViewer>
+						</Grid>
 					</Grid>
-				</Grid>
 				</Border>
 			</Grid>
 			
