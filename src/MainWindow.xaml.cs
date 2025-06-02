@@ -17,7 +17,6 @@ using System.Threading.Tasks;
 using Ionic.Zip;
 using LauncherConfig;
 using System.Windows.Documents;
-using System.Windows.Media;
 
 namespace CanaryLauncherUpdate
 {
