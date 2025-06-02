@@ -164,6 +164,7 @@
 							Cursor="Hand"
 							BorderBrush="{x:Null}"
 							Visibility="Visible"
+							Click="buttonBuyCoins_Click"
 							RenderTransformOrigin="0.5,0.5">
 							
 							<Button.RenderTransform>
@@ -482,6 +483,160 @@
 				</Border>
 			</Grid>
 			
+			<!-- Boosted Creatures Section - Bottom Left -->
+<Grid Grid.Row="3" Grid.RowSpan="2">
+	<!-- Main Background Container - optimized width for creatures -->
+	<Border
+		x:Name="BoostedBackgroundContainer"
+		Width="240"
+		Height="140"
+		VerticalAlignment="Bottom"
+		HorizontalAlignment="Left"
+		Margin="50,0,0,30"
+		CornerRadius="15">
+		<Border.Background>
+			<LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+				<GradientStop Color="#2a2a2a" Offset="0"/>
+				<GradientStop Color="#1e1e1e" Offset="1"/>
+			</LinearGradientBrush>
+		</Border.Background>
+		<Border.Effect>
+			<DropShadowEffect Color="Black" Direction="270" ShadowDepth="8" Opacity="0.6" BlurRadius="20"/>
+		</Border.Effect>
+	</Border>
+
+	<!-- Title Header - centered for optimized container -->
+	<Border
+		x:Name="BoostedTitle"
+		Width="180"
+		Height="Auto"
+		VerticalAlignment="Bottom"
+		HorizontalAlignment="Left"
+		Margin="80,0,0,135"
+		CornerRadius="8"
+		Padding="10,5">
+		<Border.Background>
+			<LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+				<GradientStop Color="#FFD700" Offset="0"/>
+				<GradientStop Color="#FFA500" Offset="1"/>
+			</LinearGradientBrush>
+		</Border.Background>
+		<Border.Effect>
+			<DropShadowEffect Color="Black" Direction="270" ShadowDepth="3" Opacity="0.4" BlurRadius="8"/>
+		</Border.Effect>
+		<TextBlock
+			VerticalAlignment="Center"
+			HorizontalAlignment="Center"
+			FontFamily="Segoe UI"
+			FontSize="13"
+			FontWeight="Bold"
+			Foreground="#1a1a1a"
+			Text="⚡ TODAY'S BOOSTED"/>
+	</Border>
+
+	<!-- Boosted Creature - aligned like boss -->
+	<Border
+		x:Name="BoostedCreatureContainer"
+		Width="100"
+		Height="Auto"
+		VerticalAlignment="Bottom"
+		HorizontalAlignment="Left"
+		Margin="70,0,0,45"
+		Cursor="Hand"
+		MouseLeftButtonDown="BoostedCreaturesPanel_MouseLeftButtonDown">
+		<Border.ToolTip>
+			<ToolTip Background="#2a2a2a" BorderBrush="#555" Foreground="White">
+				<TextBlock Text="Click to force refresh boosted creatures from gloryot.com" FontWeight="Bold"/>
+			</ToolTip>
+		</Border.ToolTip>
+		<Border.Effect>
+			<DropShadowEffect Color="Black" Direction="270" ShadowDepth="4" Opacity="0.5" BlurRadius="10"/>
+		</Border.Effect>
+		
+		<StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+			<Image x:Name="BoostedCreatureImage"
+				   Width="60"
+				   Height="60"
+				   Stretch="Uniform"
+				   HorizontalAlignment="Left"
+				   Margin="10,3,0,4">
+				<Image.Effect>
+					<DropShadowEffect Color="#FFD700" Direction="0" ShadowDepth="0" Opacity="0.6" BlurRadius="8"/>
+				</Image.Effect>
+			</Image>
+			<TextBlock x:Name="BoostedCreatureName"
+					   Text="Troll Champion"
+					   FontFamily="Segoe UI"
+					   FontSize="9"
+					   FontWeight="SemiBold"
+					   Foreground="#F0F0F0"
+					   HorizontalAlignment="Center"
+					   TextAlignment="Center"
+					   TextWrapping="Wrap"
+					   MaxWidth="90"
+					   Margin="0,2,0,2"/>
+			<TextBlock Text="CREATURE"
+					   FontFamily="Segoe UI"
+					   FontSize="8"
+					   FontWeight="Medium"
+					   Foreground="#FFD700"
+					   HorizontalAlignment="Center"
+					   TextAlignment="Center"/>
+		</StackPanel>
+	</Border>
+
+	<!-- Boosted Boss - positioned to the right -->
+	<Border
+		x:Name="BoostedBossContainer"
+		Width="100"
+		Height="Auto"
+		VerticalAlignment="Bottom"
+		HorizontalAlignment="Left"
+		Margin="160,0,0,45"
+		Cursor="Hand"
+		MouseLeftButtonDown="BoostedCreaturesPanel_MouseLeftButtonDown">
+		<Border.ToolTip>
+			<ToolTip Background="#2a2a2a" BorderBrush="#555" Foreground="White">
+				<TextBlock Text="Click to force refresh boosted creatures from gloryot.com" FontWeight="Bold"/>
+			</ToolTip>
+		</Border.ToolTip>
+		<Border.Effect>
+			<DropShadowEffect Color="Black" Direction="270" ShadowDepth="4" Opacity="0.5" BlurRadius="10"/>
+		</Border.Effect>
+		
+		<StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+			<Image x:Name="BoostedBossImage"
+				   Width="60"
+				   Height="60"
+				   Stretch="Uniform"
+				   HorizontalAlignment="Center"
+				   Margin="0,3,0,4">
+				<Image.Effect>
+					<DropShadowEffect Color="#FF4444" Direction="0" ShadowDepth="0" Opacity="0.6" BlurRadius="8"/>
+				</Image.Effect>
+			</Image>
+			<TextBlock x:Name="BoostedBossName"
+					   Text="Gorzindel"
+					   FontFamily="Segoe UI"
+					   FontSize="9"
+					   FontWeight="SemiBold"
+					   Foreground="#F0F0F0"
+					   HorizontalAlignment="Center"
+					   TextAlignment="Center"
+					   TextWrapping="Wrap"
+					   MaxWidth="90"
+					   Margin="0,2,0,2"/>
+			<TextBlock Text="BOSS"
+					   FontFamily="Segoe UI"
+					   FontSize="8"
+					   FontWeight="Medium"
+					   Foreground="#FF4444"
+					   HorizontalAlignment="Center"
+					   TextAlignment="Center"/>
+		</StackPanel>
+	</Border>
+</Grid>
+
 			<!-- Footer -->
 			<Grid Grid.Row="4" Margin="20,0">
 				<Grid.ColumnDefinitions>

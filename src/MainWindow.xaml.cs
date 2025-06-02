@@ -35,6 +35,8 @@ namespace CanaryLauncherUpdate
 		bool needUpdate = false;
 		private List<NewsItem> currentNewsItems = new List<NewsItem>();
 		private int currentNewsIndex = 0;
+		private BoostedCreature currentBoostedCreature;
+		private BoostedCreature currentBoostedBoss;
 
 		static readonly HttpClient httpClient = new HttpClient();
 		WebClient webClient = new WebClient();
@@ -135,8 +137,9 @@ namespace CanaryLauncherUpdate
 			labelClientVersion.Visibility = Visibility.Collapsed;
 			labelDownloadPercent.Visibility = Visibility.Collapsed;
 
-			// Load news asynchronously
+			// Load news and boosted creatures asynchronously
 			await LoadNewsAsync();
+			await LoadBoostedCreaturesAsync();
 
 			if (File.Exists(GetLauncherPath(true) + "/launcher_config.json"))
 			{
@@ -492,6 +495,136 @@ namespace CanaryLauncherUpdate
 				   "• Evento de experiencia doble\n" +
 				   "• Nueva quest épica disponible\n\n" +
 				   "Servidor en constante desarrollo y mejora.";
+		}
+
+		private async Task LoadBoostedCreaturesAsync(bool forceRefresh = false)
+		{
+			try
+			{
+				// Fetch boosted creatures from the website
+				var (creature, boss) = await BoostedCreatureService.FetchBoostedCreaturesAsync(forceRefresh);
+				
+				// Store the boosted creatures
+				currentBoostedCreature = creature;
+				currentBoostedBoss = boss;
+				
+				// Update the UI on the main thread
+				Dispatcher.Invoke(() =>
+				{
+					UpdateBoostedCreaturesDisplay();
+				});
+			}
+			catch (Exception)
+			{
+				// Use fallback data if loading fails
+				Dispatcher.Invoke(() =>
+				{
+					LoadFallbackBoostedCreatures();
+				});
+			}
+		}
+
+		private void UpdateBoostedCreaturesDisplay()
+		{
+			try
+			{
+				if (currentBoostedCreature != null)
+				{
+					BoostedCreatureName.Text = currentBoostedCreature.Name;
+					LoadImageAsync(BoostedCreatureImage, currentBoostedCreature.ImageUrl);
+				}
+
+				if (currentBoostedBoss != null)
+				{
+					BoostedBossName.Text = currentBoostedBoss.Name;
+					LoadImageAsync(BoostedBossImage, currentBoostedBoss.ImageUrl);
+				}
+			}
+			catch (Exception)
+			{
+				LoadFallbackBoostedCreatures();
+			}
+		}
+
+		private void LoadFallbackBoostedCreatures()
+		{
+			BoostedCreatureName.Text = "Troll Champion";
+			BoostedBossName.Text = "Gorzindel";
+			
+			// Load fallback images
+			LoadImageAsync(BoostedCreatureImage, "https://gloryot.com/images/animated-outfits/animoutfit.php?id=281&addons=0&head=0&body=0&legs=0&feet=0&mount=0");
+			LoadImageAsync(BoostedBossImage, "https://gloryot.com/images/animated-outfits/animoutfit.php?id=1062&addons=1&head=94&body=81&legs=10&feet=0&mount=0");
+		}
+
+		private async void LoadImageAsync(Image imageControl, string imageUrl)
+		{
+			try
+			{
+				using (var client = new HttpClient())
+				{
+					client.DefaultRequestHeaders.Add("User-Agent", 
+						"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+					
+					var imageBytes = await client.GetByteArrayAsync(imageUrl);
+					
+					Dispatcher.Invoke(() =>
+					{
+						var bitmap = new BitmapImage();
+						bitmap.BeginInit();
+						bitmap.StreamSource = new MemoryStream(imageBytes);
+						bitmap.CacheOption = BitmapCacheOption.OnLoad;
+						bitmap.EndInit();
+						bitmap.Freeze();
+						
+						imageControl.Source = bitmap;
+					});
+				}
+			}
+			catch (Exception)
+			{
+				// If image loading fails, we'll just leave it empty or use a placeholder
+				Dispatcher.Invoke(() =>
+				{
+					imageControl.Source = null;
+				});
+			}
+		}
+
+		private async void BoostedCreaturesPanel_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+		{
+			// Force refresh boosted creatures when clicked
+			await LoadBoostedCreaturesAsync(forceRefresh: true);
+		}
+
+		private void buttonBuyCoins_Click(object sender, RoutedEventArgs e)
+		{
+			try
+			{
+				// Open the Glory Coins purchase page in the default browser
+				string buyCoinsUrl = "https://gloryot.com/shop";
+				
+				Process.Start(new ProcessStartInfo
+				{
+					FileName = buyCoinsUrl,
+					UseShellExecute = true
+				});
+			}
+			catch (Exception)
+			{
+				// If opening URL fails, show error in version label temporarily
+				string originalText = labelVersion.Text;
+				labelVersion.Text = "Error opening shop";
+				
+				// Reset the text after 3 seconds
+				var timer = new System.Windows.Threading.DispatcherTimer();
+				timer.Interval = TimeSpan.FromSeconds(3);
+				timer.Tick += (s, args) =>
+				{
+					labelVersion.Text = originalText;
+					timer.Stop();
+				};
+				timer.Start();
+			}
 		}
 
 	}
