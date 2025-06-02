@@ -49,8 +49,8 @@ namespace CanaryLauncherUpdate
                 var creature = ExtractBoostedCreature(html);
                 var boss = ExtractBoostedBoss(html);
                 
-                // If both extractions failed, try alternative parsing
-                if (creature.Name == "Troll Champion" && boss.Name == "Gorzindel")
+                // If both extractions failed (returned fallback values), try alternative parsing
+                if (creature.Name == "Loading..." && boss.Name == "Loading...")
                 {
                     // Try alternative extraction methods
                     var alternativeResults = TryAlternativeExtraction(html);
@@ -218,16 +218,16 @@ namespace CanaryLauncherUpdate
         {
             return new BoostedCreature
             {
-                Name = "Troll Champion",
+                Name = "Loading...",
                 Type = "Creature",
-                CreatureId = 281,
+                CreatureId = 0,
                 Addons = 0,
                 Head = 0,
                 Body = 0,
                 Legs = 0,
                 Feet = 0,
                 Mount = 0,
-                ImageUrl = "https://gloryot.com/images/animated-outfits/animoutfit.php?id=281&addons=0&head=0&body=0&legs=0&feet=0&mount=0"
+                ImageUrl = null
             };
         }
 
@@ -235,16 +235,16 @@ namespace CanaryLauncherUpdate
         {
             return new BoostedCreature
             {
-                Name = "Gorzindel",
+                Name = "Loading...",
                 Type = "Boss",
-                CreatureId = 1062,
-                Addons = 1,
-                Head = 94,
-                Body = 81,
-                Legs = 10,
+                CreatureId = 0,
+                Addons = 0,
+                Head = 0,
+                Body = 0,
+                Legs = 0,
                 Feet = 0,
                 Mount = 0,
-                ImageUrl = "https://gloryot.com/images/animated-outfits/animoutfit.php?id=1062&addons=1&head=94&body=81&legs=10&feet=0&mount=0"
+                ImageUrl = null
             };
         }
     }

@@ -548,16 +548,26 @@ namespace CanaryLauncherUpdate
 
 		private void LoadFallbackBoostedCreatures()
 		{
-			BoostedCreatureName.Text = "Troll Champion";
-			BoostedBossName.Text = "Gorzindel";
+			BoostedCreatureName.Text = "Loading...";
+			BoostedBossName.Text = "Loading...";
 			
-			// Load fallback images
-			LoadImageAsync(BoostedCreatureImage, "https://gloryot.com/images/animated-outfits/animoutfit.php?id=281&addons=0&head=0&body=0&legs=0&feet=0&mount=0");
-			LoadImageAsync(BoostedBossImage, "https://gloryot.com/images/animated-outfits/animoutfit.php?id=1062&addons=1&head=94&body=81&legs=10&feet=0&mount=0");
+			// Clear images when loading
+			BoostedCreatureImage.Source = null;
+			BoostedBossImage.Source = null;
 		}
 
 		private async void LoadImageAsync(Image imageControl, string imageUrl)
 		{
+			// If no URL provided, clear the image
+			if (string.IsNullOrEmpty(imageUrl))
+			{
+				Dispatcher.Invoke(() =>
+				{
+					imageControl.Source = null;
+				});
+				return;
+			}
+
 			try
 			{
 				using (var client = new HttpClient())

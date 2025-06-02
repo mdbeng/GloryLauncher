@@ -565,7 +565,7 @@
 				</Image.Effect>
 			</Image>
 			<TextBlock x:Name="BoostedCreatureName"
-					   Text="Troll Champion"
+					   Text="Loading..."
 					   FontFamily="Segoe UI"
 					   FontSize="9"
 					   FontWeight="SemiBold"
@@ -616,7 +616,7 @@
 				</Image.Effect>
 			</Image>
 			<TextBlock x:Name="BoostedBossName"
-					   Text="Gorzindel"
+					   Text="Loading..."
 					   FontFamily="Segoe UI"
 					   FontSize="9"
 					   FontWeight="SemiBold"
