@@ -164,243 +164,253 @@
 				</Image>
 			</Grid>
 		<!-- Button Section - Under News Box -->
-			<Grid Grid.Row="3" Grid.RowSpan="2">
-				<StackPanel VerticalAlignment="Bottom" 
-							HorizontalAlignment="Right" 
-							Margin="0,0,50,20">
-					
-					<!-- Buttons Container -->
-					<Grid Width="400" Margin="0,0,0,10">
-						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="*"/>
-							<ColumnDefinition Width="10"/>
-							<ColumnDefinition Width="*"/>
-						</Grid.ColumnDefinitions>
-						
-						<!-- Buy Glory Coins Button -->
-						<Button
-							Grid.Column="0"
-							x:Name="buttonBuyCoins"
-							Height="55"
-							BorderThickness="0"
-							Cursor="Hand"
-							BorderBrush="{x:Null}"
-							Visibility="Visible"
-							Click="buttonBuyCoins_Click"
-							RenderTransformOrigin="0.5,0.5">
-							
-							<Button.RenderTransform>
-								<ScaleTransform/>
-							</Button.RenderTransform>
+			<!-- Button Section - Under News Box -->
+<Grid Grid.Row="3" Grid.RowSpan="2">
+	<Grid VerticalAlignment="Bottom" 
+		  HorizontalAlignment="Right" 
+		  Margin="0,0,50,20"
+		  Width="400">
+		
+		<Grid.RowDefinitions>
+			<RowDefinition Height="55"/> <!-- Fixed height for buttons -->
+			<RowDefinition Height="10"/> <!-- Fixed height for progress bar -->
+			<RowDefinition Height="Auto"/> <!-- Auto height for labels -->
+		</Grid.RowDefinitions>
+		
+		<!-- Buttons Container - Fixed in Grid.Row="0" -->
+		<Grid Grid.Row="0" Width="400">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="*"/>
+				<ColumnDefinition Width="10"/>
+				<ColumnDefinition Width="*"/>
+			</Grid.ColumnDefinitions>
+			
+			<!-- Buy Glory Coins Button -->
+			<Button
+				Grid.Column="0"
+				x:Name="buttonBuyCoins"
+				Height="55"
+				BorderThickness="0"
+				Cursor="Hand"
+				BorderBrush="{x:Null}"
+				Visibility="Visible"
+				Click="buttonBuyCoins_Click"
+				RenderTransformOrigin="0.5,0.5">
+				
+				<Button.RenderTransform>
+					<ScaleTransform/>
+				</Button.RenderTransform>
 
-							<Button.Background>
-								<LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-									<GradientStop Color="#FFD700" Offset="0"/>
-									<GradientStop Color="#FFA500" Offset="1"/>
-								</LinearGradientBrush>
-							</Button.Background>
+				<Button.Background>
+					<LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+						<GradientStop Color="#FFD700" Offset="0"/>
+						<GradientStop Color="#FFA500" Offset="1"/>
+					</LinearGradientBrush>
+				</Button.Background>
 
-							<Button.ToolTip>
-								<ToolTip Background="#2a2a2a" BorderBrush="#555" Foreground="White">
-									<TextBlock
-										FontWeight="Bold"
-										Text="Buy Glory Coins">
-									</TextBlock>
-								</ToolTip>
-							</Button.ToolTip>
+				<Button.ToolTip>
+					<ToolTip Background="#2a2a2a" BorderBrush="#555" Foreground="White">
+						<TextBlock
+							FontWeight="Bold"
+							Text="Buy Glory Coins">
+						</TextBlock>
+					</ToolTip>
+				</Button.ToolTip>
 
-							<Button.Content>
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Text="💰" 
-											  FontSize="20" 
-											  Margin="0,0,8,0"
-											  VerticalAlignment="Center"/>
-									<TextBlock Text="BUY COINS" 
-											  FontWeight="Bold" 
-											  FontSize="14" 
-											  Foreground="#1a1a1a" 
-											  VerticalAlignment="Center"/>
-								</StackPanel>
-							</Button.Content>
-							
-							<Button.Style>
-								<Style TargetType="{x:Type Button}">
-									<Setter Property="Template">
-										<Setter.Value>
-											<ControlTemplate TargetType="{x:Type Button}">
-												<Border Background="{TemplateBinding Background}" 
-														CornerRadius="12"
-														BorderBrush="#66ffffff"
-														BorderThickness="1">
-													<Border.Effect>
-														<DropShadowEffect Color="Black" Direction="270" ShadowDepth="3" Opacity="0.4" BlurRadius="8"/>
-													</Border.Effect>
-													<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-												</Border>
-											</ControlTemplate>
-										</Setter.Value>
-									</Setter>
-									<Style.Triggers>
-										<Trigger Property="IsMouseOver" Value="True">
-											<Trigger.EnterActions>
-												<BeginStoryboard Storyboard="{StaticResource ButtonHoverIn}"/>
-											</Trigger.EnterActions>
-											<Trigger.ExitActions>
-												<BeginStoryboard Storyboard="{StaticResource ButtonHoverOut}"/>
-											</Trigger.ExitActions>
-										</Trigger>
-									</Style.Triggers>
-								</Style>
-							</Button.Style>
-						</Button>
-						
-						<!-- Play Button -->
-						<Button
-							Grid.Column="2"
-							x:Name="buttonPlay"
-							Height="55"
-							BorderThickness="0"
-							Cursor="Hand"
-							BorderBrush="{x:Null}"
-							Visibility="Visible"
-							Click="buttonPlay_Click"
-							MouseLeave="buttonPlay_MouseLeave"
-							MouseEnter="buttonPlay_MouseEnter"
-							RenderTransformOrigin="0.5,0.5">
-		
-		<Button.RenderTransform>
-		<ScaleTransform/>
-		</Button.RenderTransform>
-		
-		<Button.Background>
-		<LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-		<GradientStop Color="#4CAF50" Offset="0"/>
-		<GradientStop Color="#2E7D32" Offset="1"/>
-		</LinearGradientBrush>
-		</Button.Background>
-		
-		<Button.ToolTip>
-		<ToolTip Background="#2a2a2a" BorderBrush="#555" Foreground="White">
-		<TextBlock
-		x:Name="buttonPlay_tooltip"
-		FontWeight="Bold"
-		Text="Play Game">
-		</TextBlock>
-		</ToolTip>
-		</Button.ToolTip>
-		
-		<Button.Content>
-		<StackPanel Orientation="Horizontal">
-		<Image
-		x:Name="buttonPlayIcon"
-		Source="{StaticResource IconPlayKey}"
-		Stretch="Uniform"
-		Height="28"
-		Margin="0,0,12,0"/>
-		<TextBlock Text="PLAY GLORY" 
-		FontWeight="Bold" 
-		FontSize="20" 
-		Foreground="White" 
-		VerticalAlignment="Center"/>
-		</StackPanel>
-		</Button.Content>
-		
-		<Button.Style>
-		<Style TargetType="{x:Type Button}">
-		<Setter Property="Template">
-		<Setter.Value>
-		<ControlTemplate TargetType="{x:Type Button}">
-		<Border Background="{TemplateBinding Background}" 
-		CornerRadius="12"
-		BorderBrush="#66ffffff"
-		BorderThickness="1">
-		<Border.Effect>
-		<DropShadowEffect Color="Black" Direction="270" ShadowDepth="3" Opacity="0.4" BlurRadius="8"/>
-		</Border.Effect>
-		<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-		</Border>
-		</ControlTemplate>
-		</Setter.Value>
-		</Setter>
-		<Style.Triggers>
-		<Trigger Property="IsMouseOver" Value="True">
-		<Trigger.EnterActions>
-		<BeginStoryboard Storyboard="{StaticResource ButtonHoverIn}"/>
-		</Trigger.EnterActions>
-		<Trigger.ExitActions>
-		<BeginStoryboard Storyboard="{StaticResource ButtonHoverOut}"/>
-		</Trigger.ExitActions>
-		</Trigger>
-		</Style.Triggers>
-		</Style>
-		</Button.Style>
-						</Button>
-					</Grid>
-		
-		<!-- Enhanced Progress Bar -->
+				<Button.Content>
+					<StackPanel Orientation="Horizontal">
+						<TextBlock Text="💰" 
+								  FontSize="20" 
+								  Margin="0,0,8,0"
+								  VerticalAlignment="Center"/>
+						<TextBlock Text="BUY COINS" 
+								  FontWeight="Bold" 
+								  FontSize="14" 
+								  Foreground="#1a1a1a" 
+								  VerticalAlignment="Center"/>
+					</StackPanel>
+				</Button.Content>
+				
+				<Button.Style>
+					<Style TargetType="{x:Type Button}">
+						<Setter Property="Template">
+							<Setter.Value>
+								<ControlTemplate TargetType="{x:Type Button}">
+									<Border Background="{TemplateBinding Background}" 
+											CornerRadius="12"
+											BorderBrush="#66ffffff"
+											BorderThickness="1">
+										<Border.Effect>
+											<DropShadowEffect Color="Black" Direction="270" ShadowDepth="3" Opacity="0.4" BlurRadius="8"/>
+										</Border.Effect>
+										<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+									</Border>
+								</ControlTemplate>
+							</Setter.Value>
+						</Setter>
+						<Style.Triggers>
+							<Trigger Property="IsMouseOver" Value="True">
+								<Trigger.EnterActions>
+									<BeginStoryboard Storyboard="{StaticResource ButtonHoverIn}"/>
+								</Trigger.EnterActions>
+								<Trigger.ExitActions>
+									<BeginStoryboard Storyboard="{StaticResource ButtonHoverOut}"/>
+								</Trigger.ExitActions>
+							</Trigger>
+						</Style.Triggers>
+					</Style>
+				</Button.Style>
+			</Button>
+			
+			<!-- Play Button -->
+			<Button
+				Grid.Column="2"
+				x:Name="buttonPlay"
+				Height="55"
+				BorderThickness="0"
+				Cursor="Hand"
+				BorderBrush="{x:Null}"
+				Visibility="Visible"
+				Click="buttonPlay_Click"
+				MouseLeave="buttonPlay_MouseLeave"
+				MouseEnter="buttonPlay_MouseEnter"
+				RenderTransformOrigin="0.5,0.5">
+
+				<Button.RenderTransform>
+					<ScaleTransform/>
+				</Button.RenderTransform>
+
+				<Button.Background>
+					<LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+						<GradientStop Color="#4CAF50" Offset="0"/>
+						<GradientStop Color="#2E7D32" Offset="1"/>
+					</LinearGradientBrush>
+				</Button.Background>
+
+				<Button.ToolTip>
+					<ToolTip Background="#2a2a2a" BorderBrush="#555" Foreground="White">
+						<TextBlock
+							x:Name="buttonPlay_tooltip"
+							FontWeight="Bold"
+							Text="Play Game">
+						</TextBlock>
+					</ToolTip>
+				</Button.ToolTip>
+
+				<Button.Content>
+					<StackPanel Orientation="Horizontal">
+						<Image
+							x:Name="buttonPlayIcon"
+							Source="{StaticResource IconPlayKey}"
+							Stretch="Uniform"
+							Height="28"
+							Margin="0,0,12,0"/>
+						<TextBlock Text="PLAY GLORY" 
+								   FontWeight="Bold" 
+								   FontSize="20" 
+								   Foreground="White" 
+								   VerticalAlignment="Center"/>
+					</StackPanel>
+				</Button.Content>
+
+				<Button.Style>
+					<Style TargetType="{x:Type Button}">
+						<Setter Property="Template">
+							<Setter.Value>
+								<ControlTemplate TargetType="{x:Type Button}">
+									<Border Background="{TemplateBinding Background}" 
+											CornerRadius="12"
+											BorderBrush="#66ffffff"
+											BorderThickness="1">
+										<Border.Effect>
+											<DropShadowEffect Color="Black" Direction="270" ShadowDepth="3" Opacity="0.4" BlurRadius="8"/>
+										</Border.Effect>
+										<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+									</Border>
+								</ControlTemplate>
+							</Setter.Value>
+						</Setter>
+						<Style.Triggers>
+							<Trigger Property="IsMouseOver" Value="True">
+								<Trigger.EnterActions>
+									<BeginStoryboard Storyboard="{StaticResource ButtonHoverIn}"/>
+								</Trigger.EnterActions>
+								<Trigger.ExitActions>
+									<BeginStoryboard Storyboard="{StaticResource ButtonHoverOut}"/>
+								</Trigger.ExitActions>
+							</Trigger>
+						</Style.Triggers>
+					</Style>
+				</Button.Style>
+			</Button>
+		</Grid>
+
+		<!-- Enhanced Progress Bar - Fixed in Grid.Row="1" -->
 		<ProgressBar
-		x:Name="progressbarDownload"
-		Width="400"
-		Height="10"
-		Margin="0, 15, 0, 0"
-		Value="100"
-		Visibility="Collapsed"
-		Background="#33ffffff"
-		BorderThickness="0">
-		<ProgressBar.Foreground>
-		<LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-		<GradientStop Color="#FFD700" Offset="0" />
-		<GradientStop Color="#FFA500" Offset="1" />
-		</LinearGradientBrush>
-		</ProgressBar.Foreground>
-		<ProgressBar.Style>
-		<Style TargetType="ProgressBar">
-		<Setter Property="Template">
-		<Setter.Value>
-		<ControlTemplate TargetType="ProgressBar">
-		<Border Background="{TemplateBinding Background}" 
-		CornerRadius="5"
-		BorderThickness="0">
-		<Grid>
-		<Border Name="PART_Track" 
-		Background="{TemplateBinding Background}" 
-		CornerRadius="5"/>
-		<Border Name="PART_Indicator" 
-		Background="{TemplateBinding Foreground}" 
-		CornerRadius="5"
-		HorizontalAlignment="Left"/>
-		</Grid>
-		</Border>
-		</ControlTemplate>
-		</Setter.Value>
-		</Setter>
-		</Style>
-		</ProgressBar.Style>
+			Grid.Row="1"
+			x:Name="progressbarDownload"
+			Width="400"
+			Height="10"
+			Margin="0,5,0,0"
+			Value="100"
+			Visibility="Collapsed"
+			Background="#33ffffff"
+			BorderThickness="0">
+			<ProgressBar.Foreground>
+				<LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+					<GradientStop Color="#FFD700" Offset="0" />
+					<GradientStop Color="#FFA500" Offset="1" />
+				</LinearGradientBrush>
+			</ProgressBar.Foreground>
+			<ProgressBar.Style>
+				<Style TargetType="ProgressBar">
+					<Setter Property="Template">
+						<Setter.Value>
+							<ControlTemplate TargetType="ProgressBar">
+								<Border Background="{TemplateBinding Background}" 
+										CornerRadius="5"
+										BorderThickness="0">
+									<Grid>
+										<Border Name="PART_Track" 
+												Background="{TemplateBinding Background}" 
+												CornerRadius="5"/>
+										<Border Name="PART_Indicator" 
+												Background="{TemplateBinding Foreground}" 
+												CornerRadius="5"
+												HorizontalAlignment="Left"/>
+									</Grid>
+								</Border>
+							</ControlTemplate>
+						</Setter.Value>
+					</Setter>
+				</Style>
+			</ProgressBar.Style>
 		</ProgressBar>
-		
-		<!-- Enhanced Labels -->
-		<TextBlock
-		x:Name="labelClientVersion"
-		FontFamily="Segoe UI"
-		FontSize="12"
-		FontWeight="SemiBold"
-		Foreground="#E0E0E0"
-		HorizontalAlignment="Center"
-		Margin="0, 10, 0, 0"
-		Visibility="Visible"
-		Text="Client Version"/>
-		<TextBlock
-		x:Name="labelDownloadPercent"
-		FontFamily="Segoe UI"
-		FontSize="11"
-		FontWeight="Medium"
-		Foreground="#B0B0B0"
-		HorizontalAlignment="Center"
-		Margin="0, 5, 0, 0"
-		Visibility="Collapsed"
-		Text="Download"/>
+
+		<!-- Enhanced Labels - Fixed in Grid.Row="2" -->
+		<StackPanel Grid.Row="2" Margin="0,10,0,0">
+			<TextBlock
+				x:Name="labelClientVersion"
+				FontFamily="Segoe UI"
+				FontSize="12"
+				FontWeight="SemiBold"
+				Foreground="#E0E0E0"
+				HorizontalAlignment="Center"
+				Visibility="Visible"
+				Text="Client Version"/>
+			<TextBlock
+				x:Name="labelDownloadPercent"
+				FontFamily="Segoe UI"
+				FontSize="11"
+				FontWeight="Medium"
+				Foreground="#B0B0B0"
+				HorizontalAlignment="Center"
+				Margin="0,5,0,0"
+				Visibility="Collapsed"
+				Text="Download"/>
 		</StackPanel>
-		</Grid>
+	</Grid>
+</Grid>
 		<!-- News/Hints Section - Right Side -->
 			<Grid Grid.Row="1" Grid.RowSpan="3">
 				<Border
