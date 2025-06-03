@@ -18,6 +18,8 @@ using Ionic.Zip;
 using LauncherConfig;
 using System.Windows.Documents;
 using System.Windows.Threading;
+using System.IO.Compression;
+using System.Threading;
 
 namespace CanaryLauncherUpdate
 {
@@ -261,59 +263,216 @@ namespace CanaryLauncherUpdate
 			}
 		}
 
-		private void ExtractZip(string path, ExtractExistingFileAction existingFileAction)
+		private async Task ExtractZipFast(string zipPath, string extractPath, IProgress<int> progress = null, CancellationToken cancellationToken = default)
 		{
-			using (ZipFile modZip = ZipFile.Read(path))
+			try
 			{
-				foreach (ZipEntry zipEntry in modZip)
+				// Use System.IO.Compression.ZipFile for better performance
+				using (var archive = System.IO.Compression.ZipFile.OpenRead(zipPath))
 				{
-					zipEntry.Extract(GetLauncherPath(), existingFileAction);
+					int totalEntries = archive.Entries.Count;
+					int processedEntries = 0;
+					
+					// Create extraction directory if it doesn't exist
+					Directory.CreateDirectory(extractPath);
+					
+					// Process entries in parallel for better performance
+					var semaphore = new SemaphoreSlim(Environment.ProcessorCount * 2); // Limit concurrent operations
+					var tasks = new List<Task>();
+					
+					foreach (var entry in archive.Entries)
+					{
+						if (cancellationToken.IsCancellationRequested)
+							break;
+							
+						var task = Task.Run(async () =>
+						{
+							await semaphore.WaitAsync(cancellationToken);
+							try
+							{
+								await ExtractEntryAsync(entry, extractPath, cancellationToken);
+								
+								// Update progress
+								var completed = Interlocked.Increment(ref processedEntries);
+								if (progress != null)
+								{
+									var progressPercent = (int)((completed * 100.0) / totalEntries);
+									progress.Report(progressPercent);
+								}
+							}
+							finally
+							{
+								semaphore.Release();
+							}
+						}, cancellationToken);
+						
+						tasks.Add(task);
+					}
+					
+					// Wait for all extraction tasks to complete
+					await Task.WhenAll(tasks);
+				}
+			}
+			catch (OperationCanceledException)
+			{
+				throw; // Re-throw cancellation
+			}
+			catch (Exception)
+			{
+				// Fallback to the original method if the fast method fails
+				await Task.Run(() => ExtractZipFallback(zipPath, extractPath));
+			}
+		}
+		
+		private async Task ExtractEntryAsync(ZipArchiveEntry entry, string extractPath, CancellationToken cancellationToken)
+		{
+			try
+			{
+				// Skip directories
+				if (string.IsNullOrEmpty(entry.Name))
+					return;
+					
+				string destinationPath = Path.Combine(extractPath, entry.FullName);
+				
+				// Ensure the directory exists
+				string directoryPath = Path.GetDirectoryName(destinationPath);
+				if (!Directory.Exists(directoryPath))
+				{
+					Directory.CreateDirectory(directoryPath);
+				}
+				
+				// Use larger buffer for better performance (1MB for large files, 80KB for small files)
+				int bufferSize = entry.Length > 1024 * 1024 ? 1024 * 1024 : 81920;
+				
+				// Extract the file with optimized buffer size and file options
+				using (var entryStream = entry.Open())
+				using (var fileStream = new FileStream(destinationPath, FileMode.Create, FileAccess.Write, 
+					FileShare.None, bufferSize, FileOptions.SequentialScan))
+				{
+					await entryStream.CopyToAsync(fileStream, bufferSize, cancellationToken);
+				}
+				
+				// Preserve file timestamps
+				File.SetLastWriteTime(destinationPath, entry.LastWriteTime.DateTime);
+			}
+			catch (OperationCanceledException)
+			{
+				throw;
+			}
+			catch (Exception)
+			{
+				// Skip problematic files and continue
+			}
+		}
+		
+		private void ExtractZipFallback(string path, string extractPath)
+		{
+			// Fallback to original method if fast extraction fails
+			using (Ionic.Zip.ZipFile modZip = Ionic.Zip.ZipFile.Read(path))
+			{
+				foreach (Ionic.Zip.ZipEntry zipEntry in modZip)
+				{
+					zipEntry.Extract(extractPath, Ionic.Zip.ExtractExistingFileAction.OverwriteSilently);
 				}
 			}
 		}
 
 		private async void Client_DownloadFileCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
 		{
-			// Update button to show play state
-			UpdateButtonToPlayState();
-
-			if (clientConfig.replaceFolders)
+			try
 			{
-				foreach (ReplaceFolderName folderName in clientConfig.replaceFolderName)
+				// Check if download was cancelled or failed
+				if (e.Cancelled || e.Error != null)
 				{
-					string folderPath = Path.Combine(GetLauncherPath(), folderName.name);
-					if (Directory.Exists(folderPath))
+					labelDownloadPercent.Text = "Download failed. Please try again.";
+					buttonPlay.Visibility = Visibility.Visible;
+					return;
+				}
+
+				// Update UI to show extraction is starting
+				labelDownloadPercent.Text = "Extracting files...";
+				progressbarDownload.Value = 0; // Reset progress bar for extraction
+
+				if (clientConfig.replaceFolders)
+				{
+					foreach (ReplaceFolderName folderName in clientConfig.replaceFolderName)
 					{
-						Directory.Delete(folderPath, true);
+						string folderPath = Path.Combine(GetLauncherPath(), folderName.name);
+						if (Directory.Exists(folderPath))
+						{
+							Directory.Delete(folderPath, true);
+						}
 					}
 				}
+
+				// Create progress reporter for extraction
+				var extractionProgress = new Progress<int>(percent =>
+				{
+					Dispatcher.Invoke(() =>
+					{
+						progressbarDownload.Value = percent;
+						labelDownloadPercent.Text = $"Extracting files... {percent}%";
+					});
+				});
+
+				// Use cancellation token for better control
+				using (var cancellationTokenSource = new CancellationTokenSource())
+				{
+					// Extract files with fast method and progress reporting
+					string zipPath = GetLauncherPath() + "/tibia.zip";
+					string extractPath = GetLauncherPath();
+					
+					Directory.CreateDirectory(extractPath);
+					
+					// Perform fast extraction with progress updates
+					await ExtractZipFast(zipPath, extractPath, extractionProgress, cancellationTokenSource.Token);
+					
+					// Clean up the zip file
+					if (File.Exists(zipPath))
+					{
+						File.Delete(zipPath);
+					}
+				}
+
+				// Update UI to show completion
+				Dispatcher.Invoke(() =>
+				{
+					progressbarDownload.Value = 100;
+					labelDownloadPercent.Text = "Finalizing...";
+				});
+
+				// Download launcher_config.json from url to the launcher path
+				WebClient webClient = new WebClient();
+				string localPath = Path.Combine(GetLauncherPath(true), "launcher_config.json");
+				await Task.Run(() => webClient.DownloadFile(launcerConfigUrl, localPath));
+
+				AddReadOnly();
+				CreateShortcut();
+
+				// Update button to show play state
+				Dispatcher.Invoke(() =>
+				{
+					UpdateButtonToPlayState();
+					needUpdate = false;
+					clientDownloaded = true;
+					labelClientVersion.Text = GetClientVersion(GetLauncherPath(true));
+					buttonPlay_tooltip.Text = GetClientVersion(GetLauncherPath(true));
+					labelClientVersion.Visibility = Visibility.Visible;
+					buttonPlay.Visibility = Visibility.Visible;
+					progressbarDownload.Visibility = Visibility.Collapsed;
+					labelDownloadPercent.Visibility = Visibility.Collapsed;
+				});
 			}
-
-			// Adds the task to a secondary task to prevent the program from crashing while this is running
-			await Task.Run(() =>
+			catch (Exception)
 			{
-				Directory.CreateDirectory(GetLauncherPath());
-				ExtractZip(GetLauncherPath() + "/tibia.zip", ExtractExistingFileAction.OverwriteSilently);
-				File.Delete(GetLauncherPath() + "/tibia.zip");
-			});
-			progressbarDownload.Value = 100;
-
-			// Download launcher_config.json from url to the launcher path
-			WebClient webClient = new WebClient();
-			string localPath = Path.Combine(GetLauncherPath(true), "launcher_config.json");
-			webClient.DownloadFile(launcerConfigUrl, localPath);
-
-			AddReadOnly();
-			CreateShortcut();
-
-			needUpdate = false;
-			clientDownloaded = true;
-			labelClientVersion.Text = GetClientVersion(GetLauncherPath(true));
-			buttonPlay_tooltip.Text = GetClientVersion(GetLauncherPath(true));
-			labelClientVersion.Visibility = Visibility.Visible;
-			buttonPlay.Visibility = Visibility.Visible;
-			progressbarDownload.Visibility = Visibility.Collapsed;
-			labelDownloadPercent.Visibility = Visibility.Collapsed;
+				// Handle any errors during extraction
+				Dispatcher.Invoke(() =>
+				{
+					labelDownloadPercent.Text = "Extraction failed. Please try again.";
+					buttonPlay.Visibility = Visibility.Visible;
+					progressbarDownload.Visibility = Visibility.Collapsed;
+				});
+			}
 		}
 
 		private void Client_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
