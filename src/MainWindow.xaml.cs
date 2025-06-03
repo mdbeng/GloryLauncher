@@ -796,7 +796,7 @@ namespace CanaryLauncherUpdate
 			try
 			{
 				// Open the Glory Coins purchase page in the default browser
-				string buyCoinsUrl = "https://gloryot.com/shop";
+				string buyCoinsUrl = "https://gloryot.com/?stripe";
 				
 				Process.Start(new ProcessStartInfo
 				{
