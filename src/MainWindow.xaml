@@ -277,7 +277,7 @@
 		Margin="0,0,12,0"/>
 		<TextBlock Text="PLAY GLORY" 
 		FontWeight="Bold" 
-		FontSize="16" 
+		FontSize="20" 
 		Foreground="White" 
 		VerticalAlignment="Center"/>
 		</StackPanel>
@@ -508,7 +508,7 @@
 	<!-- Title Header - centered for optimized container -->
 	<Border
 		x:Name="BoostedTitle"
-		Width="180"
+		Width="160"
 		Height="Auto"
 		VerticalAlignment="Bottom"
 		HorizontalAlignment="Left"
@@ -638,26 +638,18 @@
 	</Border>
 </Grid>
 
-			<!-- Countdowns Section - Center Bottom -->
-			<Grid Grid.Row="3" Grid.RowSpan="2">
+			<!-- Countdowns Section - Positioned at top left -->
+			<Grid x:Name="CountdownsGrid" Grid.Row="2" Grid.RowSpan="2" Width="240" Height="140" 
+				  VerticalAlignment="Top" HorizontalAlignment="Left" Margin="50,-10,0,0">
 				<!-- Main Background Container -->
 				<Border
 					x:Name="CountdownsBackgroundContainer"
-					Width="240"
-					Height="140"
-					VerticalAlignment="Bottom"
-					HorizontalAlignment="Center"
-					Margin="0,0,0,30"
+					VerticalAlignment="Stretch"
+					HorizontalAlignment="Stretch"
 					CornerRadius="15">
 					<Border.Background>
-						<LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-							<GradientStop Color="#2a2a2a" Offset="0"/>
-							<GradientStop Color="#1e1e1e" Offset="1"/>
-						</LinearGradientBrush>
+						<SolidColorBrush Color="Transparent"/>
 					</Border.Background>
-					<Border.Effect>
-						<DropShadowEffect Color="Black" Direction="270" ShadowDepth="8" Opacity="0.6" BlurRadius="20"/>
-					</Border.Effect>
 				</Border>
 
 				<!-- Title Header -->
@@ -665,9 +657,9 @@
 					x:Name="CountdownsTitle"
 					Width="180"
 					Height="Auto"
-					VerticalAlignment="Bottom"
+					VerticalAlignment="Top"
 					HorizontalAlignment="Center"
-					Margin="0,0,0,135"
+					Margin="0,-15,0,0"
 					CornerRadius="8"
 					Padding="10,5">
 					<Border.Background>
@@ -691,10 +683,11 @@
 
 				<!-- Countdowns Container -->
 				<StackPanel
-					Width="220"
-					VerticalAlignment="Bottom"
+					x:Name="CountdownsStackPanel"
+					Width="140"
+					VerticalAlignment="Top"
 					HorizontalAlignment="Center"
-					Margin="0,0,0,45">
+					Margin="0,20,0,0">
 					
 					<!-- First Countdown -->
 					<Border
@@ -702,7 +695,6 @@
 						Margin="0,0,0,10"
 						Padding="8,5"
 						CornerRadius="8"
-						Background="#33000000"
 						Cursor="Hand"
 						MouseLeftButtonDown="CountdownsPanel_MouseLeftButtonDown">
 						<Border.ToolTip>
@@ -747,7 +739,6 @@
 						x:Name="SecondCountdownContainer"
 						Padding="8,5"
 						CornerRadius="8"
-						Background="#33000000"
 						Cursor="Hand"
 						MouseLeftButtonDown="CountdownsPanel_MouseLeftButtonDown">
 						<Border.ToolTip>

@@ -147,6 +147,9 @@ namespace CanaryLauncherUpdate
 			
 			// Start the countdown timer to update every second
 			StartCountdownTimer();
+			
+			// The countdown section is already positioned in XAML
+			// You can still use RepositionCountdowns() if you need to change it programmatically
 
 			if (File.Exists(GetLauncherPath(true) + "/launcher_config.json"))
 			{
@@ -725,6 +728,66 @@ namespace CanaryLauncherUpdate
 			if (currentCountdowns != null && currentCountdowns.Count > 0)
 			{
 				UpdateCountdownsDisplay();
+			}
+		}
+		
+		/// <summary>
+		/// Repositions the countdown section to a new location in the launcher
+		/// </summary>
+		/// <param name="row">The grid row to place the countdown section</param>
+		/// <param name="rowSpan">How many rows the countdown section should span</param>
+		/// <param name="verticalAlignment">Vertical alignment (Top, Center, Bottom)</param>
+		/// <param name="horizontalAlignment">Horizontal alignment (Left, Center, Right)</param>
+		/// <param name="margin">Margin around the countdown section (left,top,right,bottom)</param>
+		public void RepositionCountdowns(int row, int rowSpan, VerticalAlignment verticalAlignment, 
+			HorizontalAlignment horizontalAlignment, Thickness margin)
+		{
+			// Set the grid row and row span
+			Grid.SetRow(CountdownsGrid, row);
+			Grid.SetRowSpan(CountdownsGrid, rowSpan);
+			
+			// Set the alignment for the entire grid
+			CountdownsGrid.VerticalAlignment = verticalAlignment;
+			CountdownsGrid.HorizontalAlignment = horizontalAlignment;
+			
+			// Set the margin for the entire grid
+			CountdownsGrid.Margin = margin;
+			
+			// Reset the container alignments to stretch to fill the grid
+			CountdownsBackgroundContainer.VerticalAlignment = VerticalAlignment.Stretch;
+			CountdownsBackgroundContainer.HorizontalAlignment = HorizontalAlignment.Stretch;
+			CountdownsBackgroundContainer.Margin = new Thickness(0);
+			
+			// Adjust the title and content positions based on vertical alignment
+			if (verticalAlignment == VerticalAlignment.Top)
+			{
+				// Position title at the top
+				CountdownsTitle.VerticalAlignment = VerticalAlignment.Top;
+				CountdownsTitle.Margin = new Thickness(0, -15, 0, 0);
+				
+				// Position content below the title
+				CountdownsStackPanel.VerticalAlignment = VerticalAlignment.Top;
+				CountdownsStackPanel.Margin = new Thickness(0, 35, 0, 0);
+			}
+			else if (verticalAlignment == VerticalAlignment.Bottom)
+			{
+				// Position title at the top of the container
+				CountdownsTitle.VerticalAlignment = VerticalAlignment.Top;
+				CountdownsTitle.Margin = new Thickness(0, -15, 0, 0);
+				
+				// Position content below the title
+				CountdownsStackPanel.VerticalAlignment = VerticalAlignment.Top;
+				CountdownsStackPanel.Margin = new Thickness(0, 35, 0, 0);
+			}
+			else // Center
+			{
+				// Position title at the top of the container
+				CountdownsTitle.VerticalAlignment = VerticalAlignment.Top;
+				CountdownsTitle.Margin = new Thickness(0, -15, 0, 0);
+				
+				// Position content below the title
+				CountdownsStackPanel.VerticalAlignment = VerticalAlignment.Top;
+				CountdownsStackPanel.Margin = new Thickness(0, 35, 0, 0);
 			}
 		}
 
