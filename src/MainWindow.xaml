@@ -664,8 +664,8 @@
 					Padding="10,5">
 					<Border.Background>
 						<LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-							<GradientStop Color="#9C27B0" Offset="0"/>
-							<GradientStop Color="#673AB7" Offset="1"/>
+							<GradientStop Color="#FFD700" Offset="0"/>
+							<GradientStop Color="#FFA500" Offset="1"/>
 						</LinearGradientBrush>
 					</Border.Background>
 					<Border.Effect>
@@ -677,7 +677,7 @@
 						FontFamily="Segoe UI"
 						FontSize="13"
 						FontWeight="Bold"
-						Foreground="#FFFFFF"
+						Foreground="#1a1a1a"
 						Text="⏱️ UPCOMING EVENTS"/>
 				</Border>
 
@@ -722,7 +722,7 @@
 									FontFamily="Segoe UI"
 									FontSize="14"
 									FontWeight="Bold"
-									Foreground="#9C27B0"/>
+									Foreground="#FFD700"/>
 							</StackPanel>
 							
 							<TextBlock 
@@ -767,7 +767,7 @@
 									FontFamily="Segoe UI"
 									FontSize="14"
 									FontWeight="Bold"
-									Foreground="#673AB7"/>
+									Foreground="#FFA500"/>
 							</StackPanel>
 							
 							<TextBlock 
