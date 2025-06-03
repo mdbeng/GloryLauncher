@@ -684,7 +684,7 @@
 				<!-- Countdowns Container -->
 				<StackPanel
 					x:Name="CountdownsStackPanel"
-					Width="140"
+					Width="135"
 					VerticalAlignment="Top"
 					HorizontalAlignment="Center"
 					Margin="0,20,0,0">
@@ -730,7 +730,8 @@
 								Text="⏱️"
 								FontSize="20"
 								VerticalAlignment="Center"
-								Margin="5,0,0,0"/>
+								Margin="5,0,0,0"
+								Foreground="White"/>
 						</Grid>
 					</Border>
 					
@@ -774,7 +775,8 @@
 								Text="⏱️"
 								FontSize="20"
 								VerticalAlignment="Center"
-								Margin="5,0,0,0"/>
+								Margin="5,0,0,0"
+								Foreground="White"/>
 						</Grid>
 					</Border>
 				</StackPanel>
