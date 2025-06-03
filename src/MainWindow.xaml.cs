@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using Ionic.Zip;
 using LauncherConfig;
 using System.Windows.Documents;
+using System.Windows.Threading;
 
 namespace CanaryLauncherUpdate
 {
@@ -37,6 +38,8 @@ namespace CanaryLauncherUpdate
 		private int currentNewsIndex = 0;
 		private BoostedCreature currentBoostedCreature;
 		private BoostedCreature currentBoostedBoss;
+		private List<CountdownEvent> currentCountdowns = new List<CountdownEvent>();
+		private DispatcherTimer countdownTimer;
 
 		static readonly HttpClient httpClient = new HttpClient();
 		WebClient webClient = new WebClient();
@@ -137,9 +140,13 @@ namespace CanaryLauncherUpdate
 			labelClientVersion.Visibility = Visibility.Collapsed;
 			labelDownloadPercent.Visibility = Visibility.Collapsed;
 
-			// Load news and boosted creatures asynchronously
+			// Load news, boosted creatures, and countdowns asynchronously
 			await LoadNewsAsync();
 			await LoadBoostedCreaturesAsync();
+			await LoadCountdownsAsync();
+			
+			// Start the countdown timer to update every second
+			StartCountdownTimer();
 
 			if (File.Exists(GetLauncherPath(true) + "/launcher_config.json"))
 			{
@@ -350,6 +357,12 @@ namespace CanaryLauncherUpdate
 
 		private void CloseButton_Click(object sender, RoutedEventArgs e)
 		{
+			// Stop the countdown timer when closing
+			if (countdownTimer != null)
+			{
+				countdownTimer.Stop();
+			}
+			
 			Close();
 		}
 
@@ -604,6 +617,115 @@ namespace CanaryLauncherUpdate
 		{
 			// Force refresh boosted creatures when clicked
 			await LoadBoostedCreaturesAsync(forceRefresh: true);
+		}
+		
+		private async void CountdownsPanel_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+		{
+			// Force refresh countdowns when clicked
+			await LoadCountdownsAsync(forceRefresh: true);
+		}
+		
+		private async Task LoadCountdownsAsync(bool forceRefresh = false)
+		{
+			try
+			{
+				// Show loading state
+				Dispatcher.Invoke(() =>
+				{
+					FirstCountdownName.Text = "Loading...";
+					FirstCountdownTime.Text = "--:--:--";
+					SecondCountdownName.Text = "Loading...";
+					SecondCountdownTime.Text = "--:--:--";
+				});
+				
+				// Fetch countdowns from the website
+				var countdowns = await CountdownService.FetchCountdownsAsync(forceRefresh);
+				
+				// Store the countdowns
+				currentCountdowns = countdowns;
+				
+				// Update the UI on the main thread
+				Dispatcher.Invoke(() =>
+				{
+					UpdateCountdownsDisplay();
+				});
+			}
+			catch (Exception)
+			{
+				// Use fallback data if loading fails
+				Dispatcher.Invoke(() =>
+				{
+					LoadFallbackCountdowns();
+				});
+			}
+		}
+		
+		private void UpdateCountdownsDisplay()
+		{
+			try
+			{
+				// Hide containers if no countdowns
+				if (currentCountdowns == null || currentCountdowns.Count == 0)
+				{
+					FirstCountdownContainer.Visibility = Visibility.Collapsed;
+					SecondCountdownContainer.Visibility = Visibility.Collapsed;
+					return;
+				}
+				
+				// First countdown
+				if (currentCountdowns.Count > 0)
+				{
+					FirstCountdownContainer.Visibility = Visibility.Visible;
+					FirstCountdownName.Text = currentCountdowns[0].Name;
+					FirstCountdownTime.Text = currentCountdowns[0].GetFormattedRemainingTime();
+				}
+				else
+				{
+					FirstCountdownContainer.Visibility = Visibility.Collapsed;
+				}
+				
+				// Second countdown
+				if (currentCountdowns.Count > 1)
+				{
+					SecondCountdownContainer.Visibility = Visibility.Visible;
+					SecondCountdownName.Text = currentCountdowns[1].Name;
+					SecondCountdownTime.Text = currentCountdowns[1].GetFormattedRemainingTime();
+				}
+				else
+				{
+					SecondCountdownContainer.Visibility = Visibility.Collapsed;
+				}
+			}
+			catch (Exception)
+			{
+				LoadFallbackCountdowns();
+			}
+		}
+		
+		private void LoadFallbackCountdowns()
+		{
+			FirstCountdownName.Text = "Battle Royale";
+			FirstCountdownTime.Text = "Loading...";
+			SecondCountdownName.Text = "Double XP";
+			SecondCountdownTime.Text = "Loading...";
+		}
+		
+		private void StartCountdownTimer()
+		{
+			// Create and start a timer that ticks every second
+			countdownTimer = new DispatcherTimer();
+			countdownTimer.Interval = TimeSpan.FromSeconds(1);
+			countdownTimer.Tick += CountdownTimer_Tick;
+			countdownTimer.Start();
+		}
+		
+		private void CountdownTimer_Tick(object sender, EventArgs e)
+		{
+			// Update the countdown displays every tick
+			if (currentCountdowns != null && currentCountdowns.Count > 0)
+			{
+				UpdateCountdownsDisplay();
+			}
 		}
 
 		private void buttonBuyCoins_Click(object sender, RoutedEventArgs e)

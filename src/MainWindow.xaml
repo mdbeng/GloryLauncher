@@ -638,6 +638,157 @@
 	</Border>
 </Grid>
 
+			<!-- Countdowns Section - Center Bottom -->
+			<Grid Grid.Row="3" Grid.RowSpan="2">
+				<!-- Main Background Container -->
+				<Border
+					x:Name="CountdownsBackgroundContainer"
+					Width="240"
+					Height="140"
+					VerticalAlignment="Bottom"
+					HorizontalAlignment="Center"
+					Margin="0,0,0,30"
+					CornerRadius="15">
+					<Border.Background>
+						<LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+							<GradientStop Color="#2a2a2a" Offset="0"/>
+							<GradientStop Color="#1e1e1e" Offset="1"/>
+						</LinearGradientBrush>
+					</Border.Background>
+					<Border.Effect>
+						<DropShadowEffect Color="Black" Direction="270" ShadowDepth="8" Opacity="0.6" BlurRadius="20"/>
+					</Border.Effect>
+				</Border>
+
+				<!-- Title Header -->
+				<Border
+					x:Name="CountdownsTitle"
+					Width="180"
+					Height="Auto"
+					VerticalAlignment="Bottom"
+					HorizontalAlignment="Center"
+					Margin="0,0,0,135"
+					CornerRadius="8"
+					Padding="10,5">
+					<Border.Background>
+						<LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+							<GradientStop Color="#9C27B0" Offset="0"/>
+							<GradientStop Color="#673AB7" Offset="1"/>
+						</LinearGradientBrush>
+					</Border.Background>
+					<Border.Effect>
+						<DropShadowEffect Color="Black" Direction="270" ShadowDepth="3" Opacity="0.4" BlurRadius="8"/>
+					</Border.Effect>
+					<TextBlock
+						VerticalAlignment="Center"
+						HorizontalAlignment="Center"
+						FontFamily="Segoe UI"
+						FontSize="13"
+						FontWeight="Bold"
+						Foreground="#FFFFFF"
+						Text="⏱️ UPCOMING EVENTS"/>
+				</Border>
+
+				<!-- Countdowns Container -->
+				<StackPanel
+					Width="220"
+					VerticalAlignment="Bottom"
+					HorizontalAlignment="Center"
+					Margin="0,0,0,45">
+					
+					<!-- First Countdown -->
+					<Border
+						x:Name="FirstCountdownContainer"
+						Margin="0,0,0,10"
+						Padding="8,5"
+						CornerRadius="8"
+						Background="#33000000"
+						Cursor="Hand"
+						MouseLeftButtonDown="CountdownsPanel_MouseLeftButtonDown">
+						<Border.ToolTip>
+							<ToolTip Background="#2a2a2a" BorderBrush="#555" Foreground="White">
+								<TextBlock Text="Click to refresh event countdowns from gloryot.com" FontWeight="Bold"/>
+							</ToolTip>
+						</Border.ToolTip>
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="*"/>
+								<ColumnDefinition Width="Auto"/>
+							</Grid.ColumnDefinitions>
+							
+							<StackPanel Grid.Column="0">
+								<TextBlock 
+									x:Name="FirstCountdownName"
+									Text="Loading..."
+									FontFamily="Segoe UI"
+									FontSize="12"
+									FontWeight="SemiBold"
+									Foreground="#F0F0F0"/>
+								<TextBlock 
+									x:Name="FirstCountdownTime"
+									Text="--:--:--"
+									FontFamily="Segoe UI"
+									FontSize="14"
+									FontWeight="Bold"
+									Foreground="#9C27B0"/>
+							</StackPanel>
+							
+							<TextBlock 
+								Grid.Column="1"
+								Text="⏱️"
+								FontSize="20"
+								VerticalAlignment="Center"
+								Margin="5,0,0,0"/>
+						</Grid>
+					</Border>
+					
+					<!-- Second Countdown -->
+					<Border
+						x:Name="SecondCountdownContainer"
+						Padding="8,5"
+						CornerRadius="8"
+						Background="#33000000"
+						Cursor="Hand"
+						MouseLeftButtonDown="CountdownsPanel_MouseLeftButtonDown">
+						<Border.ToolTip>
+							<ToolTip Background="#2a2a2a" BorderBrush="#555" Foreground="White">
+								<TextBlock Text="Click to refresh event countdowns from gloryot.com" FontWeight="Bold"/>
+							</ToolTip>
+						</Border.ToolTip>
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="*"/>
+								<ColumnDefinition Width="Auto"/>
+							</Grid.ColumnDefinitions>
+							
+							<StackPanel Grid.Column="0">
+								<TextBlock 
+									x:Name="SecondCountdownName"
+									Text="Loading..."
+									FontFamily="Segoe UI"
+									FontSize="12"
+									FontWeight="SemiBold"
+									Foreground="#F0F0F0"/>
+								<TextBlock 
+									x:Name="SecondCountdownTime"
+									Text="--:--:--"
+									FontFamily="Segoe UI"
+									FontSize="14"
+									FontWeight="Bold"
+									Foreground="#673AB7"/>
+							</StackPanel>
+							
+							<TextBlock 
+								Grid.Column="1"
+								Text="⏱️"
+								FontSize="20"
+								VerticalAlignment="Center"
+								Margin="5,0,0,0"/>
+						</Grid>
+					</Border>
+				</StackPanel>
+			</Grid>
+
 			<!-- Footer -->
 			<Grid Grid.Row="4" Margin="20,0">
 				<Grid.ColumnDefinitions>
