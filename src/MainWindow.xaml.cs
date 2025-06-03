@@ -853,5 +853,178 @@ namespace CanaryLauncherUpdate
 			}
 		}
 
+		private void ImageLogoServer_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+		{
+			// Check if the click is on a non-transparent pixel
+			if (IsClickOnVisiblePixel(sender as Image, e))
+			{
+				try
+				{
+					// Open the gloryot.com website in the default browser
+					string gloryotUrl = "https://gloryot.com";
+					
+					Process.Start(new ProcessStartInfo
+					{
+						FileName = gloryotUrl,
+						UseShellExecute = true
+					});
+				}
+				catch (Exception)
+				{
+					// If opening URL fails, show error in version label temporarily
+					string originalText = labelVersion.Text;
+					labelVersion.Text = "Error opening website";
+					
+					// Reset the text after 3 seconds
+					var timer = new System.Windows.Threading.DispatcherTimer();
+					timer.Interval = TimeSpan.FromSeconds(3);
+					timer.Tick += (s, args) =>
+					{
+						labelVersion.Text = originalText;
+						timer.Stop();
+					};
+					timer.Start();
+				}
+			}
+		}
+
+		private void ImageLogoServer_MouseMove(object sender, MouseEventArgs e)
+		{
+			var image = sender as Image;
+			if (image == null) return;
+
+			// Check if the mouse is over a visible pixel and update cursor and tooltip accordingly
+			if (IsMouseOverVisiblePixel(image, e))
+			{
+				image.Cursor = Cursors.Hand;
+				
+				// Show tooltip only over visible pixels
+				if (image.ToolTip == null)
+				{
+					var tooltip = new ToolTip
+					{
+						Background = new SolidColorBrush(Color.FromRgb(42, 42, 42)),
+						BorderBrush = new SolidColorBrush(Color.FromRgb(85, 85, 85)),
+						Foreground = new SolidColorBrush(Colors.White),
+						Content = new TextBlock
+						{
+							Text = "Click to visit gloryot.com",
+							FontWeight = FontWeights.Bold
+						}
+					};
+					image.ToolTip = tooltip;
+				}
+			}
+			else
+			{
+				image.Cursor = Cursors.Arrow;
+				
+				// Hide tooltip when over transparent pixels
+				image.ToolTip = null;
+			}
+		}
+
+		private void ImageLogoServer_MouseLeave(object sender, MouseEventArgs e)
+		{
+			var image = sender as Image;
+			if (image == null) return;
+
+			// Reset cursor and hide tooltip when leaving the image
+			image.Cursor = Cursors.Arrow;
+			image.ToolTip = null;
+		}
+
+		private bool IsClickOnVisiblePixel(Image image, MouseButtonEventArgs e)
+		{
+			if (image?.Source == null) return false;
+
+			try
+			{
+				// Get the position of the click relative to the image
+				Point clickPosition = e.GetPosition(image);
+				
+				// Get the image source as BitmapSource
+				BitmapSource bitmapSource = image.Source as BitmapSource;
+				if (bitmapSource == null) return true; // If we can't check, allow the click
+				
+				// Calculate the actual pixel coordinates considering the image scaling
+				double scaleX = bitmapSource.PixelWidth / image.ActualWidth;
+				double scaleY = bitmapSource.PixelHeight / image.ActualHeight;
+				
+				int pixelX = (int)(clickPosition.X * scaleX);
+				int pixelY = (int)(clickPosition.Y * scaleY);
+				
+				// Check bounds
+				if (pixelX < 0 || pixelX >= bitmapSource.PixelWidth || 
+					pixelY < 0 || pixelY >= bitmapSource.PixelHeight)
+					return false;
+				
+				// Create a cropped bitmap of just the clicked pixel
+				var croppedBitmap = new CroppedBitmap(bitmapSource, new Int32Rect(pixelX, pixelY, 1, 1));
+				
+				// Get the pixel data
+				byte[] pixelData = new byte[4]; // RGBA
+				croppedBitmap.CopyPixels(pixelData, 4, 0);
+				
+				// Check if the alpha channel indicates the pixel is visible (not fully transparent)
+				// For most image formats, alpha is in the 4th byte (index 3)
+				byte alpha = pixelData[3];
+				
+				// Return true if the pixel is not fully transparent (alpha > 0)
+				return alpha > 0;
+			}
+			catch (Exception)
+			{
+				// If there's any error in pixel checking, allow the click
+				return true;
+			}
+		}
+
+		private bool IsMouseOverVisiblePixel(Image image, MouseEventArgs e)
+		{
+			if (image?.Source == null) return false;
+
+			try
+			{
+				// Get the position of the mouse relative to the image
+				Point mousePosition = e.GetPosition(image);
+				
+				// Get the image source as BitmapSource
+				BitmapSource bitmapSource = image.Source as BitmapSource;
+				if (bitmapSource == null) return true; // If we can't check, assume visible
+				
+				// Calculate the actual pixel coordinates considering the image scaling
+				double scaleX = bitmapSource.PixelWidth / image.ActualWidth;
+				double scaleY = bitmapSource.PixelHeight / image.ActualHeight;
+				
+				int pixelX = (int)(mousePosition.X * scaleX);
+				int pixelY = (int)(mousePosition.Y * scaleY);
+				
+				// Check bounds
+				if (pixelX < 0 || pixelX >= bitmapSource.PixelWidth || 
+					pixelY < 0 || pixelY >= bitmapSource.PixelHeight)
+					return false;
+				
+				// Create a cropped bitmap of just the pixel under the mouse
+				var croppedBitmap = new CroppedBitmap(bitmapSource, new Int32Rect(pixelX, pixelY, 1, 1));
+				
+				// Get the pixel data
+				byte[] pixelData = new byte[4]; // RGBA
+				croppedBitmap.CopyPixels(pixelData, 4, 0);
+				
+				// Check if the alpha channel indicates the pixel is visible (not fully transparent)
+				// For most image formats, alpha is in the 4th byte (index 3)
+				byte alpha = pixelData[3];
+				
+				// Return true if the pixel is not fully transparent (alpha > 0)
+				return alpha > 0;
+			}
+			catch (Exception)
+			{
+				// If there's any error in pixel checking, assume visible
+				return true;
+			}
+		}
+
 	}
 }
