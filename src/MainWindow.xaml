@@ -39,6 +39,7 @@
 				<BitmapImage x:Key="BackGroundKey" UriSource="pack://application:,,,/Assets/background.jpg"/>
 				<BitmapImage x:Key="LogoKey" UriSource="pack://application:,,,/Assets/logo.png"/>
 				<BitmapImage x:Key="LogoCompanyKey" UriSource="pack://application:,,,/Assets/logo_company.png"/>
+				<BitmapImage x:Key="DiscordKey" UriSource="pack://application:,,,/Assets/discord.png"/>
 				<BitmapImage x:Key="BGButtonUpdateKey" UriSource="pack://application:,,,/Assets/bg_button_update.png"/>
 				<BitmapImage x:Key="ButtonPlayKey" UriSource="pack://application:,,,/Assets/button_play.png"/>
 				<BitmapImage x:Key="IconPlayKey" UriSource="pack://application:,,,/Assets/icon_play.png"/>
@@ -117,7 +118,7 @@
 
 			<!-- Logo Section - Top Left -->
 			<Grid Grid.Row="0" Grid.RowSpan="2">
-				<Border HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,10,0,0">
+				<Border HorizontalAlignment="Left" VerticalAlignment="Top" Margin="85,10,0,0">
 					<Border.Effect>
 						<DropShadowEffect Color="#FFD700" Direction="0" ShadowDepth="0" Opacity="0.6" BlurRadius="15"/>
 					</Border.Effect>
@@ -140,6 +141,25 @@
 						</Image.Triggers>
 					</Image>
 				</Border>
+				
+				<!-- Discord Logo - Positioned separately -->
+				<Image
+					x:Name="DiscordLogo"
+					Height="45"
+					Width="45"
+					Source="{StaticResource DiscordKey}"
+					Stretch="Uniform"
+					HorizontalAlignment="Left"
+					VerticalAlignment="Top"
+					Visibility="Visible"
+					Margin="15,25,0,0"
+					Cursor="Hand"
+					ToolTip="Join our Discord server!"
+					MouseLeftButtonDown="DiscordLogo_MouseLeftButtonDown">
+					<Image.Effect>
+						<DropShadowEffect Color="#5865F2" Direction="0" ShadowDepth="0" Opacity="0.4" BlurRadius="8"/>
+					</Image.Effect>
+				</Image>
 			</Grid>
 		<!-- Button Section - Under News Box -->
 			<Grid Grid.Row="3" Grid.RowSpan="2">
@@ -438,7 +458,6 @@
 							<!-- Enhanced Character Image -->
 							<Border Grid.Column="0" 
 									CornerRadius="10" 
-									Background="#3a3a3a"
 									Padding="8"
 									VerticalAlignment="Top"
 									Margin="0,0,0,0">

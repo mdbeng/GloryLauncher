@@ -104,6 +104,7 @@
     <Resource Include="Assets\button_hover_update.png" />
     <Resource Include="Assets\button_play.png" />
     <Resource Include="Assets\button_update.png" />
+    <Resource Include="Assets\discord.png" />
     <Resource Include="Assets\icon_play.png" />
     <Resource Include="Assets\icon_update.png" />
     <Resource Include="Assets\launcher_ico.png" />

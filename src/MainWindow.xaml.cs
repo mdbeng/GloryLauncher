@@ -822,5 +822,36 @@ namespace CanaryLauncherUpdate
 			}
 		}
 
+		private void DiscordLogo_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+		{
+			try
+			{
+				// Open the Discord invite link in the default browser
+				string discordInviteUrl = "https://discord.com/invite/zgumtCmEbz";
+				
+				Process.Start(new ProcessStartInfo
+				{
+					FileName = discordInviteUrl,
+					UseShellExecute = true
+				});
+			}
+			catch (Exception)
+			{
+				// If opening URL fails, show error in version label temporarily
+				string originalText = labelVersion.Text;
+				labelVersion.Text = "Error opening Discord";
+				
+				// Reset the text after 3 seconds
+				var timer = new System.Windows.Threading.DispatcherTimer();
+				timer.Interval = TimeSpan.FromSeconds(3);
+				timer.Tick += (s, args) =>
+				{
+					labelVersion.Text = originalText;
+					timer.Stop();
+				};
+				timer.Start();
+			}
+		}
+
 	}
 }
