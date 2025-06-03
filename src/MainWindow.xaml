@@ -8,7 +8,7 @@
 		Icon="pack://application:,,,/Assets/launcher_ico.png"
 		mc:Ignorable="d" 
 		Height="500"
-		Width="900"
+		Width="800"
 		FontFamily="Segoe UI"
 		Background="Transparent"
 		x:Name="home"
@@ -509,11 +509,11 @@
 	<!-- Main Background Container - optimized width for creatures -->
 	<Border
 		x:Name="BoostedBackgroundContainer"
-		Width="240"
+		Width="200"
 		Height="140"
 		VerticalAlignment="Bottom"
 		HorizontalAlignment="Left"
-		Margin="50,0,0,30"
+		Margin="61,0,0,30"
 		CornerRadius="15">
 		<Border.Background>
 			<LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
@@ -562,7 +562,7 @@
 		Height="Auto"
 		VerticalAlignment="Bottom"
 		HorizontalAlignment="Left"
-		Margin="70,0,0,45"
+		Margin="60,0,0,45"
 		Cursor="Hand"
 		MouseLeftButtonDown="BoostedCreaturesPanel_MouseLeftButtonDown">
 		<Border.ToolTip>
@@ -614,7 +614,7 @@
 		Height="Auto"
 		VerticalAlignment="Bottom"
 		HorizontalAlignment="Left"
-		Margin="160,0,0,45"
+		Margin="150,0,0,45"
 		Cursor="Hand"
 		MouseLeftButtonDown="BoostedCreaturesPanel_MouseLeftButtonDown">
 		<Border.ToolTip>
