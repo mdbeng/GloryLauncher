@@ -34,7 +34,9 @@ namespace CanaryLauncherUpdate
 		static string programVersion = clientConfig.launcherVersion;
 
 		string newVersion = "";
+#pragma warning disable CS0414 // Variable is assigned but its value is never used
 		bool clientDownloaded = false;
+#pragma warning restore CS0414
 		bool needUpdate = false;
 		private List<NewsItem> currentNewsItems = new List<NewsItem>();
 		private int currentNewsIndex = 0;

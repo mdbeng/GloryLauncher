@@ -102,7 +102,7 @@ namespace CanaryLauncherUpdate
 				this.Close();
 				timer.Stop();
 			}
-			catch (Exception ex)
+			catch (Exception)
 			{
 				// If there's an error, still try to show the main window
 				MainWindow mainWindow = new MainWindow();
