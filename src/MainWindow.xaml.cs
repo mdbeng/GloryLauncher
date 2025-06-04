@@ -276,49 +276,39 @@ namespace CanaryLauncherUpdate
 					// Create extraction directory if it doesn't exist
 					Directory.CreateDirectory(extractPath);
 					
-					// Process entries in parallel for better performance
-					var semaphore = new SemaphoreSlim(Environment.ProcessorCount * 2); // Limit concurrent operations
-					var tasks = new List<Task>();
-					
+					// Process entries sequentially to ensure reliability
 					foreach (var entry in archive.Entries)
 					{
 						if (cancellationToken.IsCancellationRequested)
 							break;
 							
-						var task = Task.Run(async () =>
+						try
 						{
-							await semaphore.WaitAsync(cancellationToken);
-							try
+							await ExtractEntryAsync(entry, extractPath, cancellationToken);
+							
+							// Update progress
+							var completed = Interlocked.Increment(ref processedEntries);
+							if (progress != null)
 							{
-								await ExtractEntryAsync(entry, extractPath, cancellationToken);
-								
-								// Update progress
-								var completed = Interlocked.Increment(ref processedEntries);
-								if (progress != null)
-								{
-									var progressPercent = (int)((completed * 100.0) / totalEntries);
-									progress.Report(progressPercent);
-								}
+								var progressPercent = (int)((completed * 100.0) / totalEntries);
+								progress.Report(progressPercent);
 							}
-							finally
-							{
-								semaphore.Release();
-							}
-						}, cancellationToken);
-						
-						tasks.Add(task);
+						}
+						catch (Exception ex)
+						{
+							// Log the error but continue with other files
+							Debug.WriteLine($"Error extracting {entry.FullName}: {ex.Message}");
+						}
 					}
-					
-					// Wait for all extraction tasks to complete
-					await Task.WhenAll(tasks);
 				}
 			}
 			catch (OperationCanceledException)
 			{
 				throw; // Re-throw cancellation
 			}
-			catch (Exception)
+			catch (Exception ex)
 			{
+				Debug.WriteLine($"Fast extraction failed: {ex.Message}");
 				// Fallback to the original method if the fast method fails
 				await Task.Run(() => ExtractZipFallback(zipPath, extractPath));
 			}
@@ -326,43 +316,35 @@ namespace CanaryLauncherUpdate
 		
 		private async Task ExtractEntryAsync(ZipArchiveEntry entry, string extractPath, CancellationToken cancellationToken)
 		{
-			try
+			// Skip directories (but don't return, as we need to create the directory)
+			bool isDirectory = string.IsNullOrEmpty(entry.Name) || entry.FullName.EndsWith("/") || entry.FullName.EndsWith("\\");
+			
+			string destinationPath = Path.Combine(extractPath, entry.FullName.Replace('/', '\\'));
+			
+			// Ensure the directory exists
+			string directoryPath = isDirectory ? destinationPath : Path.GetDirectoryName(destinationPath);
+			if (!Directory.Exists(directoryPath))
 			{
-				// Skip directories
-				if (string.IsNullOrEmpty(entry.Name))
-					return;
-					
-				string destinationPath = Path.Combine(extractPath, entry.FullName);
-				
-				// Ensure the directory exists
-				string directoryPath = Path.GetDirectoryName(destinationPath);
-				if (!Directory.Exists(directoryPath))
-				{
-					Directory.CreateDirectory(directoryPath);
-				}
-				
-				// Use larger buffer for better performance (1MB for large files, 80KB for small files)
-				int bufferSize = entry.Length > 1024 * 1024 ? 1024 * 1024 : 81920;
-				
-				// Extract the file with optimized buffer size and file options
-				using (var entryStream = entry.Open())
-				using (var fileStream = new FileStream(destinationPath, FileMode.Create, FileAccess.Write, 
-					FileShare.None, bufferSize, FileOptions.SequentialScan))
-				{
-					await entryStream.CopyToAsync(fileStream, bufferSize, cancellationToken);
-				}
-				
-				// Preserve file timestamps
-				File.SetLastWriteTime(destinationPath, entry.LastWriteTime.DateTime);
+				Directory.CreateDirectory(directoryPath);
 			}
-			catch (OperationCanceledException)
+			
+			// If it's a directory, we're done after creating it
+			if (isDirectory)
+				return;
+				
+			// Use larger buffer for better performance (1MB for large files, 80KB for small files)
+			int bufferSize = entry.Length > 1024 * 1024 ? 1024 * 1024 : 81920;
+			
+			// Extract the file with optimized buffer size and file options
+			using (var entryStream = entry.Open())
+			using (var fileStream = new FileStream(destinationPath, FileMode.Create, FileAccess.Write, 
+				FileShare.None, bufferSize, FileOptions.SequentialScan))
 			{
-				throw;
+				await entryStream.CopyToAsync(fileStream, bufferSize, cancellationToken);
 			}
-			catch (Exception)
-			{
-				// Skip problematic files and continue
-			}
+			
+			// Preserve file timestamps
+			File.SetLastWriteTime(destinationPath, entry.LastWriteTime.DateTime);
 		}
 		
 		private void ExtractZipFallback(string path, string extractPath)
@@ -370,10 +352,12 @@ namespace CanaryLauncherUpdate
 			// Fallback to original method if fast extraction fails
 			using (Ionic.Zip.ZipFile modZip = Ionic.Zip.ZipFile.Read(path))
 			{
-				foreach (Ionic.Zip.ZipEntry zipEntry in modZip)
-				{
-					zipEntry.Extract(extractPath, Ionic.Zip.ExtractExistingFileAction.OverwriteSilently);
-				}
+				// Set extraction behavior
+				modZip.ExtractExistingFile = Ionic.Zip.ExtractExistingFileAction.OverwriteSilently;
+				modZip.ZipErrorAction = Ionic.Zip.ZipErrorAction.Skip;
+				
+				// Extract all entries
+				modZip.ExtractAll(extractPath, Ionic.Zip.ExtractExistingFileAction.OverwriteSilently);
 			}
 		}
 
