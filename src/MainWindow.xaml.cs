@@ -153,12 +153,14 @@ namespace CanaryLauncherUpdate
 			// The countdown section is already positioned in XAML
 			// You can still use RepositionCountdowns() if you need to change it programmatically
 
+			// Always check for updates when the launcher starts
 			if (File.Exists(GetLauncherPath(true) + "/launcher_config.json"))
 			{
 				// Read actual client version
 				string actualVersion = GetClientVersion(GetLauncherPath(true));
 				labelVersion.Text = "v" + programVersion;
 
+				// Compare versions to see if an update is needed
 				if (newVersion != actualVersion)
 				{
 					// Update button to show update state
@@ -168,6 +170,22 @@ namespace CanaryLauncherUpdate
 					buttonPlay.Visibility = Visibility.Visible;
 					buttonPlay_tooltip.Text = "Update";
 					needUpdate = true;
+				}
+				else
+				{
+					// Even if versions match, ensure the Play button is visible
+					UpdateButtonToPlayState();
+					labelClientVersion.Text = actualVersion;
+					labelClientVersion.Visibility = Visibility.Visible;
+					buttonPlay.Visibility = Visibility.Visible;
+					buttonPlay_tooltip.Text = "Play";
+					needUpdate = false;
+					
+					// Set clientDownloaded to true if the client executable exists
+					if (File.Exists(GetLauncherPath() + "/bin/" + clientExecutableName))
+					{
+						clientDownloaded = true;
+					}
 				}
 			}
 			if (!File.Exists(GetLauncherPath(true) + "/launcher_config.json") || Directory.Exists(GetLauncherPath()) && Directory.GetFiles(GetLauncherPath()).Length == 0 && Directory.GetDirectories(GetLauncherPath()).Length == 0)
@@ -231,10 +249,12 @@ namespace CanaryLauncherUpdate
 
 		private void buttonPlay_Click(object sender, RoutedEventArgs e)
 		{
+			// Check if an update is needed or if the client directory doesn't exist
 			if (needUpdate == true || !Directory.Exists(GetLauncherPath()))
 			{
 				try
 				{
+					// Download and install the update
 					UpdateClient();
 				}
 				catch (Exception ex)
@@ -244,13 +264,17 @@ namespace CanaryLauncherUpdate
 			}
 			else
 			{
-				if (clientDownloaded == true || !Directory.Exists(GetLauncherPath(true)))
+				// No update needed, just start the client
+				if (File.Exists(GetLauncherPath() + "/bin/" + clientExecutableName))
 				{
+					// Start the client and close the launcher
 					Process.Start(GetLauncherPath() + "/bin/" + clientExecutableName);
+					// Close the launcher completely
 					this.Close();
 				}
 				else
 				{
+					// Client executable not found, try to download it
 					try
 					{
 						UpdateClient();
@@ -465,7 +489,13 @@ namespace CanaryLauncherUpdate
 			if (progressbarDownload.Value == 100) {
 				labelDownloadPercent.Text = "Finishing, wait...";
 			} else {
-				labelDownloadPercent.Text = SizeSuffix(e.BytesReceived) + " / " + SizeSuffix(e.TotalBytesToReceive);
+				// Only show package size for first-time downloads or when folder is missing
+				if (!File.Exists(GetLauncherPath(true) + "/launcher_config.json") || !Directory.Exists(GetLauncherPath())) {
+					labelDownloadPercent.Text = SizeSuffix(e.BytesReceived) + " / " + SizeSuffix(e.TotalBytesToReceive);
+				} else {
+					// For updates, just show percentage
+					labelDownloadPercent.Text = $"Downloading... {e.ProgressPercentage}%";
+				}
 			}
 		}
 

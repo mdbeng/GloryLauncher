@@ -56,10 +56,11 @@ namespace CanaryLauncherUpdate
 
 		private void StartClient()
 		{
-			if (File.Exists(GetLauncherPath() + "/bin/" + clientExecutableName)) {
-				Process.Start(GetLauncherPath() + "/bin/" + clientExecutableName);
-				this.Close();
-			}
+			// Instead of directly starting the client and closing the launcher,
+			// we'll show the main launcher window to ensure update checks happen
+			MainWindow mainWindow = new MainWindow();
+			mainWindow.Show();
+			this.Close();
 		}
 
 		public SplashScreen()
@@ -70,13 +71,8 @@ namespace CanaryLauncherUpdate
 				this.Close();
 			}
 
-			// Start the client if the versions are the same
-			if (File.Exists(GetLauncherPath(true) + "/launcher_config.json")) {
-				string actualVersion = GetClientVersion(GetLauncherPath(true));
-				if (newVersion == actualVersion && Directory.Exists(GetLauncherPath()) ) {
-					StartClient();
-				}
-			}
+			// Always show the launcher instead of directly starting the client
+			// This ensures users can see update notifications and launcher features
 
 			InitializeComponent();
 			timer.Tick += new EventHandler(timer_SplashScreen);
@@ -86,21 +82,34 @@ namespace CanaryLauncherUpdate
 
 		public async void timer_SplashScreen(object sender, EventArgs e)
 		{
-			var requestClient = new HttpRequestMessage(HttpMethod.Post, urlClient);
-			var response = await httpClient.SendAsync(requestClient);
-			if (response.StatusCode == HttpStatusCode.NotFound)
+			try
 			{
+				// Check if the client URL is available
+				var requestClient = new HttpRequestMessage(HttpMethod.Head, urlClient);
+				var response = await httpClient.SendAsync(requestClient);
+				
+				// Create client directory if it doesn't exist
+				if (!Directory.Exists(GetLauncherPath()))
+				{
+					Directory.CreateDirectory(GetLauncherPath());
+				}
+				
+				// Always show the main launcher window
+				MainWindow mainWindow = new MainWindow();
+				mainWindow.Show();
+				
+				// Close the splash screen
 				this.Close();
+				timer.Stop();
 			}
-
-			if (!Directory.Exists(GetLauncherPath()))
+			catch (Exception ex)
 			{
-				Directory.CreateDirectory(GetLauncherPath());
+				// If there's an error, still try to show the main window
+				MainWindow mainWindow = new MainWindow();
+				mainWindow.Show();
+				this.Close();
+				timer.Stop();
 			}
-			MainWindow mainWindow = new MainWindow();
-			this.Close();
-			mainWindow.Show();
-			timer.Stop();
 		}
 	}
 }
