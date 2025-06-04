@@ -465,7 +465,13 @@ namespace CanaryLauncherUpdate
 			if (progressbarDownload.Value == 100) {
 				labelDownloadPercent.Text = "Finishing, wait...";
 			} else {
-				labelDownloadPercent.Text = SizeSuffix(e.BytesReceived) + " / " + SizeSuffix(e.TotalBytesToReceive);
+				// Only show package size for first-time downloads or when folder is missing
+				if (!File.Exists(GetLauncherPath(true) + "/launcher_config.json") || !Directory.Exists(GetLauncherPath())) {
+					labelDownloadPercent.Text = SizeSuffix(e.BytesReceived) + " / " + SizeSuffix(e.TotalBytesToReceive);
+				} else {
+					// For updates, just show percentage
+					labelDownloadPercent.Text = $"Downloading... {e.ProgressPercentage}%";
+				}
 			}
 		}
 
