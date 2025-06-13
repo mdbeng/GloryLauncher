@@ -17,6 +17,7 @@ namespace LauncherConfig
 		public ReplaceFolderName[] replaceFolderName { get; set; }
 		public string clientFolder { get; set; }
 		public string newClientUrl { get; set; }
+		public string newLauncherUrl { get; set; }
 		public string newConfigUrl { get; set; }
 		public string clientExecutable { get; set; }
 
