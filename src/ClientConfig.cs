@@ -19,7 +19,7 @@ namespace LauncherConfig
 		public string newClientUrl { get; set; }
 		public string newConfigUrl { get; set; }
 		public string clientExecutable { get; set; }
-
+		public glory15.01.newConfigUrl
 		public static ClientConfig loadFromFile(string url)
 		{
 			using (HttpClient client = new HttpClient())
