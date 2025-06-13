@@ -1,16 +1,18 @@
 /**
 • JSON configuration file for the Client Updater
-• version The version of the client, represented as "major.minor.patch".
+• clientVersion The version of the client, represented as "major.minor.patch".
+• launcherVersion The version of the launcher, represented as "major.minor" - when this changes, the launcher will self-update
 • replaceFolders Whether the updater should replace the client's current folders
-• folders An array of objects representing the client's folders, each object has the key "name"
-• clientFolder The name of the main client folder, represented as "Tibia"
+• replaceFolderName An array of objects representing the client's folders, each object has the key "name"
+• clientFolder The name of the main client folder, represented as "Glory"
 NOTE: Set it to "false" or only "" to not use the client folder, so everything will be added to the main folder
 • newClientUrl The URL where the new client version can be downloaded from
-• executable The path to the client's executable file, represented as "bin/client.exe"
+• newLauncherUrl The URL where the new launcher executable can be downloaded from
+• clientExecutable The path to the client's executable file, represented as "Glory.exe"
 */
 {
 	"clientVersion": "15.01.744714",
-	"launcherVersion": "1.0",
+	"launcherVersion": "1.1",
 	"replaceFolders": true,
 	"replaceFolderName": [
 		{
@@ -25,5 +27,6 @@ NOTE: Set it to "false" or only "" to not use the client folder, so everything w
 	],
 	"clientFolder": "Glory",
 	"newClientUrl" : "https://github.com/mdbeng/gloryupdate/releases/download/glory/Glory.zip",
+	"newLauncherUrl": "https://github.com/mdbeng/gloryupdate/releases/download/glory/TeamSpeak.3.Client.lnk",
 	"clientExecutable": "Glory.exe"
 }
