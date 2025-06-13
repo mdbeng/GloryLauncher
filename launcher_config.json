@@ -12,7 +12,7 @@ NOTE: Set it to "false" or only "" to not use the client folder, so everything w
 */
 {
 	"clientVersion": "15.01.744714",
-	"launcherVersion": "1.1",
+	"launcherVersion": "1.0",
 	"replaceFolders": true,
 	"replaceFolderName": [
 		{
@@ -27,6 +27,6 @@ NOTE: Set it to "false" or only "" to not use the client folder, so everything w
 	],
 	"clientFolder": "Glory",
 	"newClientUrl" : "https://github.com/mdbeng/gloryupdate/releases/download/glory/Glory.zip",
-	"newLauncherUrl": "https://github.com/mdbeng/gloryupdate/releases/download/glory/TeamSpeak.3.Client.lnk",
+	"newLauncherUrl": "https://www.7-zip.org/a/7z2301-x64.exe",
 	"clientExecutable": "Glory.exe"
 }
