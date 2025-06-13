@@ -9,7 +9,7 @@ NOTE: Set it to "false" or only "" to not use the client folder, so everything w
 • executable The path to the client's executable file, represented as "bin/client.exe"
 */
 {
-	"clientVersion": "15.01.744712",
+	"clientVersion": "15.01.744713",
 	"launcherVersion": "1.0",
 	"replaceFolders": true,
 	"replaceFolderName": [
@@ -24,6 +24,6 @@ NOTE: Set it to "false" or only "" to not use the client folder, so everything w
 		}
 	],
 	"clientFolder": "Glory",
-	"newClientUrl" : "https://github.com/mdbeng/GloryLauncher/releases/download/Client/Glory.zip",
+	"newClientUrl" : "https://github.com/mdbeng/gloryupdate/releases/download/glory/Glory.zip",
 	"clientExecutable": "Glory.exe"
 }
