@@ -144,6 +144,9 @@ namespace CanaryLauncherUpdate
 			labelClientVersion.Visibility = Visibility.Collapsed;
 			labelDownloadPercent.Visibility = Visibility.Collapsed;
 
+			// Check for launcher updates first
+			await CheckForLauncherUpdate();
+
 			// Load news, boosted creatures, and countdowns asynchronously
 			await LoadNewsAsync();
 			await LoadBoostedCreaturesAsync();
@@ -247,6 +250,287 @@ namespace CanaryLauncherUpdate
 			webClient.DownloadProgressChanged += Client_DownloadProgressChanged;
 			webClient.DownloadFileCompleted += Client_DownloadFileCompleted;
 			webClient.DownloadFileAsync(new Uri(urlClient), GetLauncherPath() + "/tibia.zip");
+		}
+
+		private async Task CheckForLauncherUpdate()
+		{
+			try
+			{
+				// Get the current launcher version from local config
+				string currentLauncherVersion = GetCurrentLauncherVersion();
+				
+				// Only check for updates if we have a valid current version
+				if (currentLauncherVersion == null)
+				{
+					// No local config or version found, skip update check
+					System.Diagnostics.Debug.WriteLine("Launcher Update: No local config found, skipping update check");
+					return;
+				}
+				
+				// Fetch fresh remote config for launcher update check
+				ClientConfig remoteConfig = await GetRemoteConfig();
+				if (remoteConfig == null)
+				{
+					System.Diagnostics.Debug.WriteLine("Launcher Update: Failed to fetch remote config");
+					return;
+				}
+				
+				// Get the remote launcher version from fresh config
+				string remoteLauncherVersion = remoteConfig.launcherVersion;
+				
+				// Debug output
+				System.Diagnostics.Debug.WriteLine($"Launcher Update Check: Local={currentLauncherVersion}, Remote={remoteLauncherVersion}");
+				
+				// Compare versions
+				if (currentLauncherVersion != remoteLauncherVersion)
+				{
+					System.Diagnostics.Debug.WriteLine("Launcher Update: Versions differ, showing update dialog");
+					
+					// Show update dialog
+					MessageBoxResult result = MessageBox.Show(
+						$"A new launcher version is available!\n\nCurrent version: {currentLauncherVersion}\nNew version: {remoteLauncherVersion}\n\nWould you like to update now?",
+						"Launcher Update Available",
+						MessageBoxButton.YesNo,
+						MessageBoxImage.Information);
+					
+					if (result == MessageBoxResult.Yes)
+					{
+						await UpdateLauncher();
+					}
+				}
+				else
+				{
+					System.Diagnostics.Debug.WriteLine("Launcher Update: Versions match, no update needed");
+				}
+			}
+			catch (Exception ex)
+			{
+				// Log error but don't interrupt launcher startup
+				System.Diagnostics.Debug.WriteLine($"Error checking for launcher update: {ex.Message}");
+			}
+		}
+
+		private async Task<ClientConfig> GetRemoteConfig()
+		{
+			try
+			{
+				using (var client = new HttpClient())
+				{
+					// Add headers to avoid caching issues
+					client.DefaultRequestHeaders.Add("Cache-Control", "no-cache");
+					client.DefaultRequestHeaders.Add("Pragma", "no-cache");
+					
+					string jsonString = await client.GetStringAsync(launcerConfigUrl);
+					return JsonConvert.DeserializeObject<ClientConfig>(jsonString);
+				}
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"Error fetching remote config: {ex.Message}");
+				return null;
+			}
+		}
+
+		private string GetCurrentLauncherVersion()
+		{
+			try
+			{
+				// Read version from local launcher_config.json
+				string localConfigPath = Path.Combine(GetLauncherPath(true), "launcher_config.json");
+				if (File.Exists(localConfigPath))
+				{
+					string json = File.ReadAllText(localConfigPath);
+					dynamic config = JsonConvert.DeserializeObject(json);
+					if (config?.launcherVersion != null)
+					{
+						return config.launcherVersion.ToString();
+					}
+				}
+				
+				// If local config doesn't exist or doesn't have launcherVersion, return null
+				// This will prevent version comparison and update check
+				return null;
+			}
+			catch
+			{
+				// Return null if there's any error reading the config
+				return null;
+			}
+		}
+
+		private async Task UpdateLauncher()
+		{
+			try
+			{
+				// Show update progress
+				labelDownloadPercent.Text = "Downloading launcher update...";
+				labelDownloadPercent.Visibility = Visibility.Visible;
+				progressbarDownload.Visibility = Visibility.Visible;
+				progressbarDownload.Value = 0;
+				
+				// Hide other UI elements during update
+				buttonPlay.Visibility = Visibility.Collapsed;
+				labelClientVersion.Visibility = Visibility.Collapsed;
+
+				// Get current executable path
+				string currentExePath = System.Reflection.Assembly.GetExecutingAssembly().Location.Replace(".dll", ".exe");
+				string tempExePath = currentExePath + ".new";
+				string backupExePath = currentExePath + ".old";
+
+				// Download new launcher
+				using (var client = new HttpClient())
+				{
+					var response = await client.GetAsync(clientConfig.newLauncherUrl, HttpCompletionOption.ResponseHeadersRead);
+					response.EnsureSuccessStatusCode();
+
+					var totalBytes = response.Content.Headers.ContentLength ?? 0;
+					var downloadedBytes = 0L;
+
+					using (var contentStream = await response.Content.ReadAsStreamAsync())
+					using (var fileStream = new FileStream(tempExePath, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true))
+					{
+						var buffer = new byte[8192];
+						int bytesRead;
+
+						while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+						{
+							await fileStream.WriteAsync(buffer, 0, bytesRead);
+							downloadedBytes += bytesRead;
+
+							// Update progress
+							if (totalBytes > 0)
+							{
+								var progressPercentage = (int)((downloadedBytes * 100) / totalBytes);
+								Dispatcher.Invoke(() =>
+								{
+									progressbarDownload.Value = progressPercentage;
+									labelDownloadPercent.Text = $"Downloading launcher update... {progressPercentage}%";
+								});
+							}
+						}
+					}
+				}
+
+				// Update progress
+				Dispatcher.Invoke(() =>
+				{
+					progressbarDownload.Value = 100;
+					labelDownloadPercent.Text = "Preparing to restart...";
+				});
+
+				// Create update script
+				string updateScript = CreateLauncherUpdateScript(currentExePath, tempExePath, backupExePath);
+				
+				// Show final message
+				Dispatcher.Invoke(() =>
+				{
+					labelDownloadPercent.Text = "Restarting launcher...";
+				});
+
+				// Execute update script
+				Process.Start(new ProcessStartInfo
+				{
+					FileName = "cmd.exe",
+					Arguments = $"/C \"{updateScript}\"",
+					WindowStyle = ProcessWindowStyle.Hidden,
+					CreateNoWindow = true,
+					UseShellExecute = true
+				});
+
+				// Wait a moment then force close current launcher
+				await Task.Delay(1000);
+				Environment.Exit(0);
+			}
+			catch (Exception ex)
+			{
+				// Show error and restore UI
+				Dispatcher.Invoke(() =>
+				{
+					MessageBox.Show($"Failed to update launcher: {ex.Message}", "Update Error", MessageBoxButton.OK, MessageBoxImage.Error);
+					
+					// Restore UI
+					progressbarDownload.Visibility = Visibility.Collapsed;
+					labelDownloadPercent.Visibility = Visibility.Collapsed;
+					buttonPlay.Visibility = Visibility.Visible;
+					labelClientVersion.Visibility = Visibility.Visible;
+				});
+			}
+		}
+
+		private string CreateLauncherUpdateScript(string currentExePath, string tempExePath, string backupExePath)
+		{
+			string scriptPath = Path.Combine(Path.GetTempPath(), "launcher_update.bat");
+			
+			string scriptContent = $@"@echo off
+echo Updating GloryLauncher...
+
+REM Wait for the current launcher to close completely
+timeout /t 3 /nobreak >nul
+
+REM Kill any remaining launcher processes to prevent conflicts
+taskkill /f /im ""GloryLauncher.exe"" >nul 2>&1
+
+REM Wait a bit more to ensure process is fully terminated
+timeout /t 2 /nobreak >nul
+
+REM Clean up any existing backup files first
+if exist ""{backupExePath}"" del ""{backupExePath}"" >nul 2>&1
+
+REM Backup current launcher if it exists
+if exist ""{currentExePath}"" (
+    echo Backing up current launcher...
+    move ""{currentExePath}"" ""{backupExePath}"" >nul 2>&1
+    if errorlevel 1 (
+        echo Failed to backup current launcher
+        goto :restore
+    )
+)
+
+REM Replace with new launcher
+if exist ""{tempExePath}"" (
+    echo Installing new launcher...
+    move ""{tempExePath}"" ""{currentExePath}"" >nul 2>&1
+    if errorlevel 1 (
+        echo Failed to install new launcher
+        goto :restore
+    )
+) else (
+    echo New launcher file not found
+    goto :restore
+)
+
+REM Verify new launcher was installed correctly
+if exist ""{currentExePath}"" (
+    echo Update successful, starting new launcher...
+    timeout /t 1 /nobreak >nul
+    start """" ""{currentExePath}""
+    goto :cleanup
+) else (
+    echo New launcher installation failed
+    goto :restore
+)
+
+:restore
+echo Restoring backup launcher...
+if exist ""{backupExePath}"" (
+    move ""{backupExePath}"" ""{currentExePath}"" >nul 2>&1
+    if exist ""{currentExePath}"" (
+        echo Backup restored, starting original launcher...
+        start """" ""{currentExePath}""
+    )
+)
+goto :cleanup
+
+:cleanup
+REM Clean up temporary files
+timeout /t 2 /nobreak >nul
+if exist ""{backupExePath}"" del ""{backupExePath}"" >nul 2>&1
+if exist ""{tempExePath}"" del ""{tempExePath}"" >nul 2>&1
+del ""%~f0"" >nul 2>&1
+";
+
+			File.WriteAllText(scriptPath, scriptContent);
+			return scriptPath;
 		}
 
 		private void buttonPlay_Click(object sender, RoutedEventArgs e)
