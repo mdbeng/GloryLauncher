@@ -12,7 +12,7 @@ NOTE: Set it to "false" or only "" to not use the client folder, so everything w
 */
 {
 	"clientVersion": "15.01.744714",
-	"launcherVersion": "1.4",
+	"launcherVersion": "1.5",
 	"replaceFolders": true,
 	"replaceFolderName": [
 		{
@@ -27,6 +27,6 @@ NOTE: Set it to "false" or only "" to not use the client folder, so everything w
 	],
 	"clientFolder": "Glory",
 	"newClientUrl" : "https://github.com/mdbeng/gloryupdate/releases/download/glory/Glory.zip",
-	"newLauncherUrl": "https://github.com/mdbeng/glorylauncher/releases/download/v1.3/GloryLauncher.exe",
+	"newLauncherUrl": "https://github.com/mdbeng/gloryupdate/releases/download/glory/GloryLauncher.exe",
 	"clientExecutable": "Glory.exe"
 }
