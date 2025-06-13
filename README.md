@@ -1,15 +1,7 @@
-# Canary Launcher Update
-* C# WPF
-* .NET 6.0
+# Glory Exclusively for GloryOt, its registered and any usage would be claimed.
 
 ### Information
 
-* ✅ Launcher like Tibia Global
-* ✅ Download client
-* ✅ Auto check update
-* ✅ Update client
-* ✅ Run the client
+* ✅ If you access the launcher src code, it is public but registered, if you want to work with us. reach out to us, we will definetely have a place for you.
 
-You must configure the "launcher_config.json" url in MainWindow.cs and SplashScreen.cs
-
-In launcher_config.json you need to make necessary settings to use the launcher. (Read the explanation of how to use each configuration)
+Any usage without consent will be prosecuted.
