@@ -399,9 +399,33 @@ namespace CanaryLauncherUpdate
 					return;
 				}
 
-				// Update UI to show extraction is starting
 				labelDownloadPercent.Text = "Extracting files...";
 				progressbarDownload.Value = 0; // Reset progress bar for extraction
+
+				// Backup user settings before extraction
+				string tempBackupPath = Path.Combine(Path.GetTempPath(), "GloryLauncher_Backup_" + Guid.NewGuid().ToString());
+				Directory.CreateDirectory(tempBackupPath);
+				
+				// Backup conf and characterdata folders if they exist
+				string confPath = Path.Combine(GetLauncherPath(), "conf");
+				string characterDataPath = Path.Combine(GetLauncherPath(), "characterdata");
+				string backupConfPath = Path.Combine(tempBackupPath, "conf");
+				string backupCharacterDataPath = Path.Combine(tempBackupPath, "characterdata");
+				
+				bool confBackedUp = false;
+				bool characterDataBackedUp = false;
+				
+				if (Directory.Exists(confPath))
+				{
+					CopyDirectory(confPath, backupConfPath);
+					confBackedUp = true;
+				}
+				
+				if (Directory.Exists(characterDataPath))
+				{
+					CopyDirectory(characterDataPath, backupCharacterDataPath);
+					characterDataBackedUp = true;
+				}
 
 				if (clientConfig.replaceFolders)
 				{
@@ -455,6 +479,40 @@ namespace CanaryLauncherUpdate
 				WebClient webClient = new WebClient();
 				string localPath = Path.Combine(GetLauncherPath(true), "launcher_config.json");
 				await Task.Run(() => webClient.DownloadFile(launcerConfigUrl, localPath));
+
+				// Restore user settings after extraction
+				if (confBackedUp && Directory.Exists(backupConfPath))
+				{
+					// Remove any conf folder that might have been extracted
+					if (Directory.Exists(confPath))
+					{
+						Directory.Delete(confPath, true);
+					}
+					CopyDirectory(backupConfPath, confPath);
+				}
+				
+				if (characterDataBackedUp && Directory.Exists(backupCharacterDataPath))
+				{
+					// Remove any characterdata folder that might have been extracted
+					if (Directory.Exists(characterDataPath))
+					{
+						Directory.Delete(characterDataPath, true);
+					}
+					CopyDirectory(backupCharacterDataPath, characterDataPath);
+				}
+				
+				// Clean up temporary backup
+				try
+				{
+					if (Directory.Exists(tempBackupPath))
+					{
+						Directory.Delete(tempBackupPath, true);
+					}
+				}
+				catch (Exception)
+				{
+					// Ignore cleanup errors
+				}
 
 				AddReadOnly();
 				CreateShortcut();
@@ -521,16 +579,38 @@ namespace CanaryLauncherUpdate
 				SizeSuffixes[mag]);
 		}
 
+		/// <summary>
+		/// Recursively copies a directory and all its contents to a new location
+		/// </summary>
+		/// <param name="sourceDir">Source directory path</param>
+		/// <param name="destDir">Destination directory path</param>
+		private static void CopyDirectory(string sourceDir, string destDir)
+		{
+			Directory.CreateDirectory(destDir);
+			
+			foreach (string file in Directory.GetFiles(sourceDir))
+			{
+				string fileName = Path.GetFileName(file);
+				string destFile = Path.Combine(destDir, fileName);
+				File.Copy(file, destFile, true); // Overwrite if exists
+			}
+			
+			foreach (string subDir in Directory.GetDirectories(sourceDir))
+			{
+				string dirName = Path.GetFileName(subDir);
+				string destSubDir = Path.Combine(destDir, dirName);
+				CopyDirectory(subDir, destSubDir);
+			}
+		}
+
 		private void buttonPlay_MouseEnter(object sender, MouseEventArgs e)
 		{
-			// The hover effects are now handled by the XAML animations
-			// We can add additional logic here if needed
+
 		}
 
 		private void buttonPlay_MouseLeave(object sender, MouseEventArgs e)
 		{
-			// The hover effects are now handled by the XAML animations
-			// We can add additional logic here if needed
+			
 		}
 
 		private void CloseButton_Click(object sender, RoutedEventArgs e)
