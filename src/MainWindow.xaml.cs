@@ -45,11 +45,6 @@ namespace CanaryLauncherUpdate
 		private List<CountdownEvent> currentCountdowns = new List<CountdownEvent>();
 		private DispatcherTimer countdownTimer;
 
-		// Preloaded data from splash screen
-		private bool dataPreloaded = false;
-		private bool launcherUpdateAvailable = false;
-		private string launcherUpdateVersion = "";
-
 		static readonly HttpClient httpClient = new HttpClient();
 		WebClient webClient = new WebClient();
 
@@ -68,80 +63,6 @@ namespace CanaryLauncherUpdate
 		public MainWindow()
 		{
 			InitializeComponent();
-		}
-
-		/// <summary>
-		/// Sets the logo immediately after preloaded data is received
-		/// </summary>
-		private void SetLogoImmediately()
-		{
-			if (preloadedLogoImage != null)
-			{
-				ImageLogoServer.Source = preloadedLogoImage;
-			}
-			
-			if (preloadedCompanyLogoImage != null)
-			{
-				ImageLogoCompany.Source = preloadedCompanyLogoImage;
-			}
-		}
-
-		// Preloaded images from splash screen
-		private BitmapImage preloadedLogoImage;
-		private BitmapImage preloadedCompanyLogoImage;
-		private BitmapImage preloadedBoostedCreatureImage;
-		private BitmapImage preloadedBoostedBossImage;
-
-		/// <summary>
-		/// Sets preloaded data from the splash screen to avoid reloading
-		/// </summary>
-		public void SetPreloadedData(
-			List<NewsItem> news,
-			BoostedCreature boostedCreature,
-			BoostedCreature boostedBoss,
-			List<CountdownEvent> countdowns,
-			bool launcherUpdateAvailable,
-			string launcherUpdateVersion,
-			bool clientUpdateNeeded,
-			string clientVersion,
-			BitmapImage logoImage,
-			BitmapImage companyLogoImage,
-			BitmapImage boostedCreatureImage,
-			BitmapImage boostedBossImage)
-		{
-			dataPreloaded = true;
-			
-			// Set news data
-			if (news != null)
-			{
-				currentNewsItems = news;
-				currentNewsIndex = 0;
-			}
-			
-			// Set boosted creatures data
-			currentBoostedCreature = boostedCreature;
-			currentBoostedBoss = boostedBoss;
-			
-			// Set countdowns data
-			if (countdowns != null)
-			{
-				currentCountdowns = countdowns;
-			}
-			
-			// Set update information
-			this.launcherUpdateAvailable = launcherUpdateAvailable;
-			this.launcherUpdateVersion = launcherUpdateVersion;
-			this.needUpdate = clientUpdateNeeded;
-			this.newVersion = clientVersion ?? clientConfig.clientVersion;
-			
-			// Set preloaded images
-			this.preloadedLogoImage = logoImage;
-			this.preloadedCompanyLogoImage = companyLogoImage;
-			this.preloadedBoostedCreatureImage = boostedCreatureImage;
-			this.preloadedBoostedBossImage = boostedBossImage;
-			
-			// Set logo immediately so it appears instantly when window opens
-			SetLogoImmediately();
 		}
 
 		private void UpdateButtonToPlayState()
@@ -215,104 +136,14 @@ namespace CanaryLauncherUpdate
 
 		private async void TibiaLauncher_Load(object sender, RoutedEventArgs e)
 		{
-			// Always try to use preloaded logo first, fallback to loading if not available
-			if (preloadedLogoImage != null)
-			{
-				ImageLogoServer.Source = preloadedLogoImage;
-			}
-			else
-			{
-				ImageLogoServer.Source = new BitmapImage(new Uri(BaseUriHelper.GetBaseUri(this), "pack://application:,,,/Assets/logo.png"));
-			}
+			ImageLogoServer.Source = new BitmapImage(new Uri(BaseUriHelper.GetBaseUri(this), "pack://application:,,,/Assets/logo.png"));
+			ImageLogoCompany.Source = new BitmapImage(new Uri(BaseUriHelper.GetBaseUri(this), "pack://application:,,,/Assets/logo_company.png"));
 
-			if (preloadedCompanyLogoImage != null)
-			{
-				ImageLogoCompany.Source = preloadedCompanyLogoImage;
-			}
-			else
-			{
-				ImageLogoCompany.Source = new BitmapImage(new Uri(BaseUriHelper.GetBaseUri(this), "pack://application:,,,/Assets/logo_company.png"));
-			}
-
-			// Hide download progress elements initially
+			newVersion = clientConfig.clientVersion;
 			progressbarDownload.Visibility = Visibility.Collapsed;
 			labelClientVersion.Visibility = Visibility.Collapsed;
 			labelDownloadPercent.Visibility = Visibility.Collapsed;
 
-			// Set version label
-			labelVersion.Text = "v" + programVersion;
-
-			if (dataPreloaded)
-			{
-				// Use preloaded data from splash screen
-				await SetupWithPreloadedData();
-			}
-			else
-			{
-				// Fallback: Load data if not preloaded (shouldn't happen normally)
-				await LoadDataFallback();
-			}
-
-			// Start the countdown timer to update every second
-			StartCountdownTimer();
-		}
-
-		private async Task SetupWithPreloadedData()
-		{
-			// Check for launcher updates first (if available)
-			if (launcherUpdateAvailable)
-			{
-				MessageBoxResult result = MessageBox.Show(
-					$"A new launcher version is available!\n\nCurrent version: {programVersion}\nNew version: {launcherUpdateVersion}\n\nWould you like to update now?",
-					"Launcher Update Available",
-					MessageBoxButton.YesNo,
-					MessageBoxImage.Information);
-				
-				if (result == MessageBoxResult.Yes)
-				{
-					await UpdateLauncher();
-					return; // Exit early as launcher will restart
-				}
-			}
-
-			// Display preloaded news
-			if (currentNewsItems != null && currentNewsItems.Count > 0)
-			{
-				string formattedNews = NewsService.FormatNewsForDisplayWithHighlight(currentNewsItems, currentNewsIndex);
-				hintsBox.Text = formattedNews;
-			}
-			else
-			{
-				hintsBox.Text = GetDefaultNewsContent();
-			}
-
-			// Display preloaded boosted creatures
-			if (currentBoostedCreature != null || currentBoostedBoss != null)
-			{
-				UpdateBoostedCreaturesDisplay();
-			}
-			else
-			{
-				LoadFallbackBoostedCreatures();
-			}
-
-			// Display preloaded countdowns
-			if (currentCountdowns != null && currentCountdowns.Count > 0)
-			{
-				UpdateCountdownsDisplay();
-			}
-			else
-			{
-				LoadFallbackCountdowns();
-			}
-
-			// Set up client update status
-			SetupClientUpdateStatus();
-		}
-
-		private async Task LoadDataFallback()
-		{
-			// This is a fallback in case data wasn't preloaded
 			// Check for launcher updates first
 			await CheckForLauncherUpdate();
 
@@ -320,27 +151,22 @@ namespace CanaryLauncherUpdate
 			await LoadNewsAsync();
 			await LoadBoostedCreaturesAsync();
 			await LoadCountdownsAsync();
+			
+			// Start the countdown timer to update every second
+			StartCountdownTimer();
+			
+			// The countdown section is already positioned in XAML
+			// You can still use RepositionCountdowns() if you need to change it programmatically
 
-			// Set up client update status
-			SetupClientUpdateStatus();
-		}
-
-		private void SetupClientUpdateStatus()
-		{
-			// Set default version if not set
-			if (string.IsNullOrEmpty(newVersion))
-			{
-				newVersion = clientConfig.clientVersion;
-			}
-
-			// Check client update status
+			// Always check for updates when the launcher starts
 			if (File.Exists(GetLauncherPath(true) + "/launcher_config.json"))
 			{
 				// Read actual client version
 				string actualVersion = GetClientVersion(GetLauncherPath(true));
+				labelVersion.Text = "v" + programVersion;
 
 				// Compare versions to see if an update is needed
-				if (needUpdate || newVersion != actualVersion)
+				if (newVersion != actualVersion)
 				{
 					// Update button to show update state
 					UpdateButtonToUpdateState();
@@ -367,11 +193,9 @@ namespace CanaryLauncherUpdate
 					}
 				}
 			}
-			else if (!File.Exists(GetLauncherPath(true) + "/launcher_config.json") || 
-					(Directory.Exists(GetLauncherPath()) && 
-					 Directory.GetFiles(GetLauncherPath()).Length == 0 && 
-					 Directory.GetDirectories(GetLauncherPath()).Length == 0))
+			if (!File.Exists(GetLauncherPath(true) + "/launcher_config.json") || Directory.Exists(GetLauncherPath()) && Directory.GetFiles(GetLauncherPath()).Length == 0 && Directory.GetDirectories(GetLauncherPath()).Length == 0)
 			{
+				labelVersion.Text = "v" + programVersion;
 				// Update button to show download state
 				UpdateButtonToUpdateState();
 				labelClientVersion.Text = "Download";
@@ -1175,11 +999,8 @@ del ""%~f0"" >nul 2>&1
 		{
 			try
 			{
-				// Show loading message only if not preloaded
-				if (!dataPreloaded)
-				{
-					hintsBox.Text = "Loading news...";
-				}
+				// Show loading message
+				hintsBox.Text = "Loading news...";
 
 				// Fetch news from the website
 				var newsItems = await NewsService.FetchNewsAsync();
@@ -1235,16 +1056,12 @@ del ""%~f0"" >nul 2>&1
 		{
 			try
 			{
-				// Only fetch if not preloaded or force refresh is requested
-				if (!dataPreloaded || forceRefresh)
-				{
-					// Fetch boosted creatures from the website
-					var (creature, boss) = await BoostedCreatureService.FetchBoostedCreaturesAsync(forceRefresh);
-					
-					// Store the boosted creatures
-					currentBoostedCreature = creature;
-					currentBoostedBoss = boss;
-				}
+				// Fetch boosted creatures from the website
+				var (creature, boss) = await BoostedCreatureService.FetchBoostedCreaturesAsync(forceRefresh);
+				
+				// Store the boosted creatures
+				currentBoostedCreature = creature;
+				currentBoostedBoss = boss;
 				
 				// Update the UI on the main thread
 				Dispatcher.Invoke(() =>
@@ -1269,31 +1086,13 @@ del ""%~f0"" >nul 2>&1
 				if (currentBoostedCreature != null)
 				{
 					BoostedCreatureName.Text = currentBoostedCreature.Name;
-					
-					// Use preloaded image if available, otherwise load from URL
-					if (preloadedBoostedCreatureImage != null)
-					{
-						BoostedCreatureImage.Source = preloadedBoostedCreatureImage;
-					}
-					else
-					{
-						LoadImageAsync(BoostedCreatureImage, currentBoostedCreature.ImageUrl);
-					}
+					LoadImageAsync(BoostedCreatureImage, currentBoostedCreature.ImageUrl);
 				}
 
 				if (currentBoostedBoss != null)
 				{
 					BoostedBossName.Text = currentBoostedBoss.Name;
-					
-					// Use preloaded image if available, otherwise load from URL
-					if (preloadedBoostedBossImage != null)
-					{
-						BoostedBossImage.Source = preloadedBoostedBossImage;
-					}
-					else
-					{
-						LoadImageAsync(BoostedBossImage, currentBoostedBoss.ImageUrl);
-					}
+					LoadImageAsync(BoostedBossImage, currentBoostedBoss.ImageUrl);
 				}
 			}
 			catch (Exception)
@@ -1372,27 +1171,20 @@ del ""%~f0"" >nul 2>&1
 		{
 			try
 			{
-				// Show loading state only if not preloaded
-				if (!dataPreloaded)
+				// Show loading state
+				Dispatcher.Invoke(() =>
 				{
-					Dispatcher.Invoke(() =>
-					{
-						FirstCountdownName.Text = "Loading...";
-						FirstCountdownTime.Text = "--:--:--";
-						SecondCountdownName.Text = "Loading...";
-						SecondCountdownTime.Text = "--:--:--";
-					});
-				}
+					FirstCountdownName.Text = "Loading...";
+					FirstCountdownTime.Text = "--:--:--";
+					SecondCountdownName.Text = "Loading...";
+					SecondCountdownTime.Text = "--:--:--";
+				});
 				
-				// Only fetch if not preloaded or force refresh is requested
-				if (!dataPreloaded || forceRefresh)
-				{
-					// Fetch countdowns from the website
-					var countdowns = await CountdownService.FetchCountdownsAsync(forceRefresh);
-					
-					// Store the countdowns
-					currentCountdowns = countdowns;
-				}
+				// Fetch countdowns from the website
+				var countdowns = await CountdownService.FetchCountdownsAsync(forceRefresh);
+				
+				// Store the countdowns
+				currentCountdowns = countdowns;
 				
 				// Update the UI on the main thread
 				Dispatcher.Invoke(() =>
