@@ -181,15 +181,21 @@ namespace CanaryLauncherUpdate
 
         private static string GetEmojiForIconType(string iconType)
         {
-            return iconType switch
+            switch (iconType)
             {
-                "0" => "🏆", // General news
-                "1" => "📢", // Announcements
-                "2" => "⚔️", // PvP/Combat
-                "3" => "🎉", // Events
-                "4" => "🔧", // Technical updates
-                _ => "📰"    // Default
-            };
+                case "0":
+                    return "🏆"; // General news
+                case "1":
+                    return "📢"; // Announcements
+                case "2":
+                    return "⚔️"; // PvP/Combat
+                case "3":
+                    return "🎉"; // Events
+                case "4":
+                    return "🔧"; // Technical updates
+                default:
+                    return "📰"; // Default
+            }
         }
     }
 }

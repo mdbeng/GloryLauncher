@@ -10,7 +10,7 @@
 		Height="500"
 		Width="800"
 		FontFamily="Segoe UI"
-		Background="Transparent"
+		Background="#1a1a1a"
 		x:Name="home"
 		WindowStyle="None"
 		ResizeMode="NoResize"
@@ -19,8 +19,8 @@
 		Title="Glory Launcher"
 		Loaded="TibiaLauncher_Load"
 		AllowsTransparency="True">
-	<!-- Main Container with rounded corners -->
-	<Border CornerRadius="15" Background="#1a1a1a" BorderBrush="#333" BorderThickness="1">
+	<!-- Main Container with straight edges -->
+	<Border CornerRadius="0" Background="Transparent" BorderBrush="#333" BorderThickness="1">
 		<Grid>
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="*"/>
@@ -83,13 +83,13 @@
 			
 			<!-- Background with overlay -->
 			<Grid Grid.RowSpan="5">
-				<Border CornerRadius="15" ClipToBounds="True">
+				<Border CornerRadius="0" ClipToBounds="True">
 					<Border.Background>
 						<ImageBrush ImageSource="{StaticResource BackGroundKey}" Stretch="UniformToFill"/>
 					</Border.Background>
 				</Border>
 				<!-- Dark overlay for better contrast -->
-				<Border CornerRadius="15" Background="#40000000" ClipToBounds="True"/>
+				<Border CornerRadius="0" Background="#40000000" ClipToBounds="True"/>
 			</Grid>
 			
 			<!-- Window Controls (No Header Bar) -->
