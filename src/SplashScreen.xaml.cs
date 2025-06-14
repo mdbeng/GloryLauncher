@@ -62,25 +62,19 @@ namespace CanaryLauncherUpdate
 		{
 			try
 			{
-				string json = path + "/launcher_config.json";
-				if (!File.Exists(json)) return "";
-				
-				string jsonContent = File.ReadAllText(json);
-				dynamic versionclient = JsonConvert.DeserializeObject(jsonContent);
-				
-				if (versionclient != null)
+				string jsonPath = Path.Combine(path, "launcher_config.json");
+				if (!File.Exists(jsonPath)) return "";
+				string jsonContent = File.ReadAllText(jsonPath);
+				dynamic config = JsonConvert.DeserializeObject(jsonContent);
+				if (config?.clientVersion != null)
 				{
-					foreach (var version in versionclient)
-					{
-						return version.ToString();
-					}
+					return config.clientVersion.ToString();
 				}
 			}
 			catch (Exception)
 			{
 				// Ignore errors and return empty string
 			}
-
 			return "";
 		}
 
