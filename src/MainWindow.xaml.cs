@@ -215,23 +215,29 @@ namespace CanaryLauncherUpdate
 
 		private async void TibiaLauncher_Load(object sender, RoutedEventArgs e)
 		{
-			// Always try to use preloaded logo first, fallback to loading if not available
-			if (preloadedLogoImage != null)
+			// Only set logos if they haven't been set by preloaded data
+			if (ImageLogoServer.Source == null)
 			{
-				ImageLogoServer.Source = preloadedLogoImage;
-			}
-			else
-			{
-				ImageLogoServer.Source = new BitmapImage(new Uri(BaseUriHelper.GetBaseUri(this), "pack://application:,,,/Assets/logo.png"));
+				if (preloadedLogoImage != null)
+				{
+					ImageLogoServer.Source = preloadedLogoImage;
+				}
+				else
+				{
+					ImageLogoServer.Source = new BitmapImage(new Uri(BaseUriHelper.GetBaseUri(this), "pack://application:,,,/Assets/logo.png"));
+				}
 			}
 
-			if (preloadedCompanyLogoImage != null)
+			if (ImageLogoCompany.Source == null)
 			{
-				ImageLogoCompany.Source = preloadedCompanyLogoImage;
-			}
-			else
-			{
-				ImageLogoCompany.Source = new BitmapImage(new Uri(BaseUriHelper.GetBaseUri(this), "pack://application:,,,/Assets/logo_company.png"));
+				if (preloadedCompanyLogoImage != null)
+				{
+					ImageLogoCompany.Source = preloadedCompanyLogoImage;
+				}
+				else
+				{
+					ImageLogoCompany.Source = new BitmapImage(new Uri(BaseUriHelper.GetBaseUri(this), "pack://application:,,,/Assets/logo_company.png"));
+				}
 			}
 
 			// Hide download progress elements initially

@@ -124,7 +124,6 @@
 					<Image
 						x:Name="ImageLogoServer"
 						Height="140"
-						Source="{StaticResource LogoKey}"
 						Stretch="Uniform"
 						HorizontalAlignment="Left"
 						VerticalAlignment="Top"
@@ -136,12 +135,7 @@
 						<Image.RenderTransform>
 							<ScaleTransform/>
 						</Image.RenderTransform>
-						<Image.Triggers>
-							<EventTrigger RoutedEvent="Loaded">
-								<BeginStoryboard Storyboard="{StaticResource FadeInAnimation}"/>
-							</EventTrigger>
-						</Image.Triggers>
-											</Image>
+					</Image>
 				</Border>
 				
 				<!-- Discord Logo - Positioned separately -->
