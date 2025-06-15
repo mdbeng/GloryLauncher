@@ -22,7 +22,8 @@ namespace CanaryLauncherUpdate
     {
         private static readonly HttpClient httpClient = new HttpClient();
         private const string BASE_URL = "https://gloryot.com";
-        private const string UNIFIED_API_URL = "https://gloryot.com/?api/launcher"; // Proposed unified API endpoint
+        // TODO: Implement unified API endpoint later
+        //private const string UNIFIED_API_URL = "https://gloryot.com/?api/launcher"; // Proposed unified API endpoint
         private static DateTime lastFetchTime = DateTime.MinValue;
         private static UnifiedGameData cachedData = null;
         private static readonly TimeSpan CACHE_DURATION = TimeSpan.FromMinutes(5);
@@ -35,7 +36,7 @@ namespace CanaryLauncherUpdate
         }
 
         /// <summary>
-        /// Fetches all launcher data (news, countdowns, boosted creatures) in a single request
+        /// Fetches all launcher data (news, countdowns, boosted creatures) using optimized multi-request approach
         /// </summary>
         public static async Task<UnifiedGameData> FetchAllDataAsync(bool forceRefresh = false)
         {
@@ -48,17 +49,18 @@ namespace CanaryLauncherUpdate
 
             try
             {
+                // TODO: Implement unified API endpoint later
                 // Try the unified API endpoint first (if it exists)
-                var unifiedData = await TryFetchUnifiedApiAsync();
-                if (unifiedData != null)
-                {
-                    cachedData = unifiedData;
-                    lastFetchTime = DateTime.Now;
-                    cachedData.IsFromCache = false;
-                    return cachedData;
-                }
+                //var unifiedData = await TryFetchUnifiedApiAsync();
+                //if (unifiedData != null)
+                //{
+                //    cachedData = unifiedData;
+                //    lastFetchTime = DateTime.Now;
+                //    cachedData.IsFromCache = false;
+                //    return cachedData;
+                //}
 
-                // Fallback to optimized multi-request approach
+                // Use optimized multi-request approach
                 var optimizedData = await FetchDataOptimizedAsync();
                 cachedData = optimizedData;
                 lastFetchTime = DateTime.Now;
@@ -80,77 +82,78 @@ namespace CanaryLauncherUpdate
         }
 
         /// <summary>
+        /// TODO: Implement unified API endpoint later
         /// Attempts to fetch data from a unified API endpoint (if implemented by the server)
         /// </summary>
-        private static async Task<UnifiedGameData> TryFetchUnifiedApiAsync()
-        {
-            try
-            {
-                var response = await httpClient.GetAsync(UNIFIED_API_URL);
-                if (response.IsSuccessStatusCode)
-                {
-                    var jsonContent = await response.Content.ReadAsStringAsync();
-                    var apiData = JsonConvert.DeserializeObject<dynamic>(jsonContent);
-                    
-                    var unifiedData = new UnifiedGameData
-                    {
-                        FetchTime = DateTime.Now
-                    };
+        //private static async Task<UnifiedGameData> TryFetchUnifiedApiAsync()
+        //{
+        //    try
+        //    {
+        //        var response = await httpClient.GetAsync(UNIFIED_API_URL);
+        //        if (response.IsSuccessStatusCode)
+        //        {
+        //            var jsonContent = await response.Content.ReadAsStringAsync();
+        //            var apiData = JsonConvert.DeserializeObject<dynamic>(jsonContent);
+        //            
+        //            var unifiedData = new UnifiedGameData
+        //            {
+        //                FetchTime = DateTime.Now
+        //            };
 
-                    // Parse news from API response
-                    if (apiData.news != null)
-                    {
-                        foreach (var newsItem in apiData.news)
-                        {
-                            unifiedData.News.Add(new NewsItem
-                            {
-                                Title = newsItem.title?.ToString(),
-                                Date = newsItem.date?.ToString(),
-                                Content = newsItem.content?.ToString(),
-                                Url = newsItem.url?.ToString(),
-                                IconType = newsItem.iconType?.ToString()
-                            });
-                        }
-                    }
+        //            // Parse news from API response
+        //            if (apiData.news != null)
+        //            {
+        //                foreach (var newsItem in apiData.news)
+        //                {
+        //                    unifiedData.News.Add(new NewsItem
+        //                    {
+        //                        Title = newsItem.title?.ToString(),
+        //                        Date = newsItem.date?.ToString(),
+        //                        Content = newsItem.content?.ToString(),
+        //                        Url = newsItem.url?.ToString(),
+        //                        IconType = newsItem.iconType?.ToString()
+        //                    });
+        //                }
+        //            }
 
-                    // Parse countdowns from API response
-                    if (apiData.countdowns != null)
-                    {
-                        foreach (var countdown in apiData.countdowns)
-                        {
-                            long timestamp = (long)countdown.timestamp;
-                            var endTime = DateTimeOffset.FromUnixTimeMilliseconds(timestamp).DateTime.ToLocalTime();
-                            
-                            unifiedData.Countdowns.Add(new CountdownEvent
-                            {
-                                Name = countdown.name?.ToString(),
-                                EndTime = endTime,
-                                TimestampMs = timestamp
-                            });
-                        }
-                    }
+        //            // Parse countdowns from API response
+        //            if (apiData.countdowns != null)
+        //            {
+        //                foreach (var countdown in apiData.countdowns)
+        //                {
+        //                    long timestamp = (long)countdown.timestamp;
+        //                    var endTime = DateTimeOffset.FromUnixTimeMilliseconds(timestamp).DateTime.ToLocalTime();
+        //                    
+        //                    unifiedData.Countdowns.Add(new CountdownEvent
+        //                    {
+        //                        Name = countdown.name?.ToString(),
+        //                        EndTime = endTime,
+        //                        TimestampMs = timestamp
+        //                    });
+        //                }
+        //            }
 
-                    // Parse boosted creatures from API response
-                    if (apiData.boostedCreature != null)
-                    {
-                        unifiedData.BoostedCreature = ParseBoostedCreatureFromApi(apiData.boostedCreature, "Creature");
-                    }
+        //            // Parse boosted creatures from API response
+        //            if (apiData.boostedCreature != null)
+        //            {
+        //                unifiedData.BoostedCreature = ParseBoostedCreatureFromApi(apiData.boostedCreature, "Creature");
+        //            }
 
-                    if (apiData.boostedBoss != null)
-                    {
-                        unifiedData.BoostedBoss = ParseBoostedCreatureFromApi(apiData.boostedBoss, "Boss");
-                    }
+        //            if (apiData.boostedBoss != null)
+        //            {
+        //                unifiedData.BoostedBoss = ParseBoostedCreatureFromApi(apiData.boostedBoss, "Boss");
+        //            }
 
-                    return unifiedData;
-                }
-            }
-            catch (Exception)
-            {
-                // Unified API not available or failed, will fallback to optimized approach
-            }
+        //            return unifiedData;
+        //        }
+        //    }
+        //    catch (Exception)
+        //    {
+        //        // Unified API not available or failed, will fallback to optimized approach
+        //    }
 
-            return null;
-        }
+        //    return null;
+        //}
 
         /// <summary>
         /// Optimized approach that minimizes requests by fetching main page and countdowns page only
@@ -187,22 +190,15 @@ namespace CanaryLauncherUpdate
             return unifiedData;
         }
 
-        private static BoostedCreature ParseBoostedCreatureFromApi(dynamic apiCreature, string type)
-        {
-            return new BoostedCreature
-            {
-                Name = apiCreature.name?.ToString(),
-                Type = type,
-                CreatureId = (int)(apiCreature.creatureId ?? 0),
-                Addons = (int)(apiCreature.addons ?? 0),
-                Head = (int)(apiCreature.head ?? 0),
-                Body = (int)(apiCreature.body ?? 0),
-                Legs = (int)(apiCreature.legs ?? 0),
-                Feet = (int)(apiCreature.feet ?? 0),
-                Mount = (int)(apiCreature.mount ?? 0),
-                ImageUrl = apiCreature.imageUrl?.ToString()
-            };
-        }
+        //private static BoostedCreature ParseBoostedCreatureFromApi(dynamic apiCreature, string type)
+        //{
+        //    return new BoostedCreature
+        //    {
+        //        Name = apiCreature.name?.ToString(),
+        //        Type = type,
+        //        ImageUrl = apiCreature.imageUrl?.ToString()
+        //    };
+        //}
 
         private static (BoostedCreature creature, BoostedCreature boss) ExtractBoostedCreaturesFromHtml(string html)
         {
@@ -223,13 +219,6 @@ namespace CanaryLauncherUpdate
                 {
                     return new BoostedCreature
                     {
-                        CreatureId = int.Parse(creatureMatch.Groups[1].Value),
-                        Addons = int.Parse(creatureMatch.Groups[2].Value),
-                        Head = int.Parse(creatureMatch.Groups[3].Value),
-                        Body = int.Parse(creatureMatch.Groups[4].Value),
-                        Legs = int.Parse(creatureMatch.Groups[5].Value),
-                        Feet = int.Parse(creatureMatch.Groups[6].Value),
-                        Mount = int.Parse(creatureMatch.Groups[7].Value),
                         Name = creatureMatch.Groups[8].Value.Trim(),
                         Type = "Creature",
                         ImageUrl = $"{BASE_URL}/images/animated-outfits/animoutfit.php?id={creatureMatch.Groups[1].Value}&addons={creatureMatch.Groups[2].Value}&head={creatureMatch.Groups[3].Value}&body={creatureMatch.Groups[4].Value}&legs={creatureMatch.Groups[5].Value}&feet={creatureMatch.Groups[6].Value}&mount={creatureMatch.Groups[7].Value}"
@@ -256,13 +245,6 @@ namespace CanaryLauncherUpdate
                 {
                     return new BoostedCreature
                     {
-                        CreatureId = int.Parse(bossMatch.Groups[1].Value),
-                        Addons = int.Parse(bossMatch.Groups[2].Value),
-                        Head = int.Parse(bossMatch.Groups[3].Value),
-                        Body = int.Parse(bossMatch.Groups[4].Value),
-                        Legs = int.Parse(bossMatch.Groups[5].Value),
-                        Feet = int.Parse(bossMatch.Groups[6].Value),
-                        Mount = int.Parse(bossMatch.Groups[7].Value),
                         Name = bossMatch.Groups[8].Value.Trim(),
                         Type = "Boss",
                         ImageUrl = $"{BASE_URL}/images/animated-outfits/animoutfit.php?id={bossMatch.Groups[1].Value}&addons={bossMatch.Groups[2].Value}&head={bossMatch.Groups[3].Value}&body={bossMatch.Groups[4].Value}&legs={bossMatch.Groups[5].Value}&feet={bossMatch.Groups[6].Value}&mount={bossMatch.Groups[7].Value}"
@@ -465,13 +447,6 @@ namespace CanaryLauncherUpdate
             {
                 Name = "Loading...",
                 Type = "Creature",
-                CreatureId = 0,
-                Addons = 0,
-                Head = 0,
-                Body = 0,
-                Legs = 0,
-                Feet = 0,
-                Mount = 0,
                 ImageUrl = null
             };
         }
@@ -482,13 +457,6 @@ namespace CanaryLauncherUpdate
             {
                 Name = "Loading...",
                 Type = "Boss",
-                CreatureId = 0,
-                Addons = 0,
-                Head = 0,
-                Body = 0,
-                Legs = 0,
-                Feet = 0,
-                Mount = 0,
                 ImageUrl = null
             };
         }
