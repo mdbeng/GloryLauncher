@@ -327,72 +327,45 @@ namespace CanaryLauncherUpdate
 
 		private void SetupClientUpdateStatus()
 		{
-			// Set default version if not set
-			if (string.IsNullOrEmpty(newVersion))
+			// Use only the preloaded state from the splash screen to set the UI
+			if (needUpdate)
 			{
-				newVersion = clientConfig.clientVersion;
-			}
-
-			// Check client update status
-			if (File.Exists(GetLauncherPath(true) + "/launcher_config.json"))
-			{
-				// Read actual client version
-				string actualVersion = GetClientVersion(GetLauncherPath(true));
-
-				// Compare versions to see if an update is needed
-				if (needUpdate || newVersion != actualVersion)
-				{
-					// Update button to show update state
-					UpdateButtonToUpdateState();
-					labelClientVersion.Text = newVersion;
-					labelClientVersion.Visibility = Visibility.Visible;
-					buttonPlay.Visibility = Visibility.Visible;
-					buttonPlay_tooltip.Text = "Update";
-					needUpdate = true;
-				}
-				else
-				{
-					// Even if versions match, ensure the Play button is visible
-					UpdateButtonToPlayState();
-					labelClientVersion.Text = actualVersion;
-					labelClientVersion.Visibility = Visibility.Visible;
-					buttonPlay.Visibility = Visibility.Visible;
-					buttonPlay_tooltip.Text = "Play";
-					needUpdate = false;
-					
-					// Set clientDownloaded to true if the client executable exists
-					if (File.Exists(GetLauncherPath() + "/bin/" + clientExecutableName))
-					{
-						clientDownloaded = true;
-					}
-				}
-			}
-			else if (!File.Exists(GetLauncherPath(true) + "/launcher_config.json") || 
-					(Directory.Exists(GetLauncherPath()) && 
-					 Directory.GetFiles(GetLauncherPath()).Length == 0 && 
-					 Directory.GetDirectories(GetLauncherPath()).Length == 0))
-			{
-				// Update button to show download state
 				UpdateButtonToUpdateState();
-				labelClientVersion.Text = "Download";
+				labelClientVersion.Text = newVersion;
 				labelClientVersion.Visibility = Visibility.Visible;
 				buttonPlay.Visibility = Visibility.Visible;
-				buttonPlay_tooltip.Text = "Download";
-				needUpdate = true;
+				buttonPlay_tooltip.Text = "Update";
+			}
+			else
+			{
+				UpdateButtonToPlayState();
+				labelClientVersion.Text = newVersion;
+				labelClientVersion.Visibility = Visibility.Visible;
+				buttonPlay.Visibility = Visibility.Visible;
+				buttonPlay_tooltip.Text = "Play";
+				// Set clientDownloaded to true if the client executable exists
+				if (File.Exists(GetLauncherPath() + "/bin/" + clientExecutableName))
+				{
+					clientDownloaded = true;
+				}
 			}
 		}
 
 		static string GetClientVersion(string path)
 		{
-			string json = path + "/launcher_config.json";
-			StreamReader stream = new StreamReader(json);
-			dynamic jsonString = stream.ReadToEnd();
-			dynamic versionclient = JsonConvert.DeserializeObject(jsonString);
-			foreach (string version in versionclient)
+			string jsonPath = Path.Combine(path, "launcher_config.json");
+			if (!File.Exists(jsonPath))
+				return "";
+			try
 			{
-				return version;
+				string jsonString = File.ReadAllText(jsonPath);
+				dynamic config = JsonConvert.DeserializeObject(jsonString);
+				if (config?.clientVersion != null)
+				{
+					return config.clientVersion.ToString();
+				}
 			}
-
+			catch { }
 			return "";
 		}
 
