@@ -567,25 +567,38 @@ namespace CanaryLauncherUpdate
 					labelDownloadPercent.Text = "Preparing to restart...";
 				});
 
+				// Download latest launcher_config.json to update launcherVersion
+				try
+				{
+				WebClient webClient = new WebClient();
+				string localConfigPath = System.IO.Path.Combine(GetLauncherPath(true), "launcher_config.json");
+				await Task.Run(() => webClient.DownloadFile(launcerConfigUrl, localConfigPath));
+				}
+				catch (Exception ex)
+				{
+				// Log but do not block update
+				System.Diagnostics.Debug.WriteLine($"Failed to update launcher_config.json: {ex.Message}");
+				}
+				
 				// Create update script
 				string updateScript = CreateLauncherUpdateScript(currentExePath, tempExePath, backupExePath);
 				
 				// Show final message
 				Dispatcher.Invoke(() =>
 				{
-					labelDownloadPercent.Text = "Restarting launcher...";
+				labelDownloadPercent.Text = "Restarting launcher...";
 				});
-
+				
 				// Execute update script
 				Process.Start(new ProcessStartInfo
 				{
-					FileName = "cmd.exe",
-					Arguments = $"/C \"{updateScript}\"",
-					WindowStyle = ProcessWindowStyle.Hidden,
-					CreateNoWindow = true,
-					UseShellExecute = true
+				FileName = "cmd.exe",
+				Arguments = $"/C \"{updateScript}\"",
+				WindowStyle = ProcessWindowStyle.Hidden,
+				CreateNoWindow = true,
+				UseShellExecute = true
 				});
-
+				
 				// Wait a moment then force close current launcher
 				await Task.Delay(1000);
 				Environment.Exit(0);
