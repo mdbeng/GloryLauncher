@@ -1173,15 +1173,15 @@ del ""%~f0"" >nul 2>&1
 					hintsBox.Text = "Loading news...";
 				}
 
-				// Fetch news from the website
-				var newsItems = await NewsService.FetchNewsAsync();
+				// Use unified service to fetch all data, but only update news
+				var unifiedData = await UnifiedDataService.FetchAllDataAsync();
 				
 				// Store the news items for click handling
-				currentNewsItems = newsItems;
+				currentNewsItems = unifiedData.News;
 				currentNewsIndex = 0; // Reset to first news item
 				
 				// Format and display the news with highlight
-				string formattedNews = NewsService.FormatNewsForDisplayWithHighlight(newsItems, currentNewsIndex);
+				string formattedNews = NewsService.FormatNewsForDisplayWithHighlight(unifiedData.News, currentNewsIndex);
 				
 				// Update the UI on the main thread
 				Dispatcher.Invoke(() =>
@@ -1230,12 +1230,12 @@ del ""%~f0"" >nul 2>&1
 				// Only fetch if not preloaded or force refresh is requested
 				if (!dataPreloaded || forceRefresh)
 				{
-					// Fetch boosted creatures from the website
-					var (creature, boss) = await BoostedCreatureService.FetchBoostedCreaturesAsync(forceRefresh);
+					// Use unified service to fetch all data, but only update boosted creatures
+					var unifiedData = await UnifiedDataService.FetchAllDataAsync(forceRefresh);
 					
 					// Store the boosted creatures
-					currentBoostedCreature = creature;
-					currentBoostedBoss = boss;
+					currentBoostedCreature = unifiedData.BoostedCreature;
+					currentBoostedBoss = unifiedData.BoostedBoss;
 				}
 				
 				// Update the UI on the main thread
@@ -1379,11 +1379,11 @@ del ""%~f0"" >nul 2>&1
 				// Only fetch if not preloaded or force refresh is requested
 				if (!dataPreloaded || forceRefresh)
 				{
-					// Fetch countdowns from the website
-					var countdowns = await CountdownService.FetchCountdownsAsync(forceRefresh);
+					// Use unified service to fetch all data, but only update countdowns
+					var unifiedData = await UnifiedDataService.FetchAllDataAsync(forceRefresh);
 					
 					// Store the countdowns
-					currentCountdowns = countdowns;
+					currentCountdowns = unifiedData.Countdowns;
 				}
 				
 				// Update the UI on the main thread

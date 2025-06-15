@@ -39,9 +39,7 @@ namespace CanaryLauncherUpdate
 		private int currentStep = 0;
 		private readonly string[] stepNames = {
 			"Checking launcher updates...",
-			"Loading news...",
-			"Loading boosted creatures...",
-			"Loading countdowns...",
+			"Loading game data...",
 			"Loading images...",
 			"Finalizing..."
 		};
@@ -135,20 +133,14 @@ namespace CanaryLauncherUpdate
 			// Step 1: Check launcher updates
 			await ExecuteStep(0, CheckLauncherUpdates);
 			
-			// Step 2: Load news
-			await ExecuteStep(1, LoadNews);
+			// Step 2: Load all game data in one request
+			await ExecuteStep(1, LoadAllGameData);
 			
-			// Step 3: Load boosted creatures
-			await ExecuteStep(2, LoadBoostedCreatures);
+			// Step 3: Load images
+			await ExecuteStep(2, LoadImages);
 			
-			// Step 4: Load countdowns
-			await ExecuteStep(3, LoadCountdowns);
-			
-			// Step 5: Load images
-			await ExecuteStep(4, LoadImages);
-			
-			// Step 6: Check client updates
-			await ExecuteStep(5, CheckClientUpdates);
+			// Step 4: Check client updates
+			await ExecuteStep(3, CheckClientUpdates);
 		}
 
 		private async Task ExecuteStep(int stepIndex, Func<Task> stepAction)
@@ -162,7 +154,7 @@ namespace CanaryLauncherUpdate
 				LoadingProgressBar.Value = (stepIndex * 100.0) / stepNames.Length;
 				
 				// Update step indicators
-				for (int i = 0; i <= stepIndex && i < 6; i++)
+				for (int i = 0; i <= stepIndex && i < 4; i++)
 				{
 					var stepBorder = FindName($"Step{i + 1}") as Border;
 					if (stepBorder != null)
@@ -246,42 +238,26 @@ namespace CanaryLauncherUpdate
 			}
 		}
 
-		private async Task LoadNews()
+		private async Task LoadAllGameData()
 		{
 			try
 			{
-				LoadedNews = await NewsService.FetchNewsAsync();
+				// Use unified service to fetch all data in one request
+				var unifiedData = await UnifiedDataService.FetchAllDataAsync();
+				
+				// Store all the loaded data
+				LoadedNews = unifiedData.News ?? new List<NewsItem>();
+				LoadedBoostedCreature = unifiedData.BoostedCreature;
+				LoadedBoostedBoss = unifiedData.BoostedBoss;
+				LoadedCountdowns = unifiedData.Countdowns ?? new List<CountdownEvent>();
 			}
 			catch (Exception)
 			{
-				LoadedNews = new List<NewsItem>(); // Empty list as fallback
-			}
-		}
-
-		private async Task LoadBoostedCreatures()
-		{
-			try
-			{
-				var (creature, boss) = await BoostedCreatureService.FetchBoostedCreaturesAsync();
-				LoadedBoostedCreature = creature;
-				LoadedBoostedBoss = boss;
-			}
-			catch (Exception)
-			{
+				// Use fallback data if unified service fails
+				LoadedNews = new List<NewsItem>();
 				LoadedBoostedCreature = null;
 				LoadedBoostedBoss = null;
-			}
-		}
-
-		private async Task LoadCountdowns()
-		{
-			try
-			{
-				LoadedCountdowns = await CountdownService.FetchCountdownsAsync();
-			}
-			catch (Exception)
-			{
-				LoadedCountdowns = new List<CountdownEvent>(); // Empty list as fallback
+				LoadedCountdowns = new List<CountdownEvent>();
 			}
 		}
 
