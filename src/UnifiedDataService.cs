@@ -22,8 +22,7 @@ namespace CanaryLauncherUpdate
     {
         private static readonly HttpClient httpClient = new HttpClient();
         private const string BASE_URL = "https://gloryot.com";
-        // TODO: Implement unified API endpoint later
-        //private const string UNIFIED_API_URL = "https://gloryot.com/?api/launcher"; // Proposed unified API endpoint
+        private const string UNIFIED_API_URL = "https://gloryot.com/?apilauncher"; // Unified API endpoint
         private static DateTime lastFetchTime = DateTime.MinValue;
         private static UnifiedGameData cachedData = null;
         private static readonly TimeSpan CACHE_DURATION = TimeSpan.FromMinutes(5);
@@ -36,7 +35,7 @@ namespace CanaryLauncherUpdate
         }
 
         /// <summary>
-        /// Fetches all launcher data (news, countdowns, boosted creatures) using optimized multi-request approach
+        /// Fetches all launcher data (news, countdowns, boosted creatures) using unified API endpoint with fallback to multi-request approach
         /// </summary>
         public static async Task<UnifiedGameData> FetchAllDataAsync(bool forceRefresh = false)
         {
@@ -49,18 +48,17 @@ namespace CanaryLauncherUpdate
 
             try
             {
-                // TODO: Implement unified API endpoint later
-                // Try the unified API endpoint first (if it exists)
-                //var unifiedData = await TryFetchUnifiedApiAsync();
-                //if (unifiedData != null)
-                //{
-                //    cachedData = unifiedData;
-                //    lastFetchTime = DateTime.Now;
-                //    cachedData.IsFromCache = false;
-                //    return cachedData;
-                //}
+                // Try the unified API endpoint first
+                var unifiedData = await TryFetchUnifiedApiAsync();
+                if (unifiedData != null)
+                {
+                    cachedData = unifiedData;
+                    lastFetchTime = DateTime.Now;
+                    cachedData.IsFromCache = false;
+                    return cachedData;
+                }
 
-                // Use optimized multi-request approach
+                // Fallback to optimized multi-request approach if unified API fails
                 var optimizedData = await FetchDataOptimizedAsync();
                 cachedData = optimizedData;
                 lastFetchTime = DateTime.Now;
@@ -82,78 +80,44 @@ namespace CanaryLauncherUpdate
         }
 
         /// <summary>
-        /// TODO: Implement unified API endpoint later
-        /// Attempts to fetch data from a unified API endpoint (if implemented by the server)
+        /// Attempts to fetch data from the unified API endpoint
         /// </summary>
-        //private static async Task<UnifiedGameData> TryFetchUnifiedApiAsync()
-        //{
-        //    try
-        //    {
-        //        var response = await httpClient.GetAsync(UNIFIED_API_URL);
-        //        if (response.IsSuccessStatusCode)
-        //        {
-        //            var jsonContent = await response.Content.ReadAsStringAsync();
-        //            var apiData = JsonConvert.DeserializeObject<dynamic>(jsonContent);
-        //            
-        //            var unifiedData = new UnifiedGameData
-        //            {
-        //                FetchTime = DateTime.Now
-        //            };
+        private static async Task<UnifiedGameData> TryFetchUnifiedApiAsync()
+        {
+            try
+            {
+                var response = await httpClient.GetAsync(UNIFIED_API_URL);
+                if (response.IsSuccessStatusCode)
+                {
+                    var htmlContent = await response.Content.ReadAsStringAsync();
+                    
+                    // Parse the unified HTML response that contains all data
+                    var unifiedData = new UnifiedGameData
+                    {
+                        FetchTime = DateTime.Now
+                    };
 
-        //            // Parse news from API response
-        //            if (apiData.news != null)
-        //            {
-        //                foreach (var newsItem in apiData.news)
-        //                {
-        //                    unifiedData.News.Add(new NewsItem
-        //                    {
-        //                        Title = newsItem.title?.ToString(),
-        //                        Date = newsItem.date?.ToString(),
-        //                        Content = newsItem.content?.ToString(),
-        //                        Url = newsItem.url?.ToString(),
-        //                        IconType = newsItem.iconType?.ToString()
-        //                    });
-        //                }
-        //            }
+                    // Extract boosted creatures from the unified page
+                    var (creature, boss) = ExtractBoostedCreaturesFromHtml(htmlContent);
+                    unifiedData.BoostedCreature = creature;
+                    unifiedData.BoostedBoss = boss;
 
-        //            // Parse countdowns from API response
-        //            if (apiData.countdowns != null)
-        //            {
-        //                foreach (var countdown in apiData.countdowns)
-        //                {
-        //                    long timestamp = (long)countdown.timestamp;
-        //                    var endTime = DateTimeOffset.FromUnixTimeMilliseconds(timestamp).DateTime.ToLocalTime();
-        //                    
-        //                    unifiedData.Countdowns.Add(new CountdownEvent
-        //                    {
-        //                        Name = countdown.name?.ToString(),
-        //                        EndTime = endTime,
-        //                        TimestampMs = timestamp
-        //                    });
-        //                }
-        //            }
+                    // Extract countdowns from the unified page
+                    unifiedData.Countdowns = ExtractCountdownsFromHtml(htmlContent);
 
-        //            // Parse boosted creatures from API response
-        //            if (apiData.boostedCreature != null)
-        //            {
-        //                unifiedData.BoostedCreature = ParseBoostedCreatureFromApi(apiData.boostedCreature, "Creature");
-        //            }
+                    // Extract news from the unified page
+                    unifiedData.News = await ExtractNewsFromUnifiedHtml(htmlContent);
 
-        //            if (apiData.boostedBoss != null)
-        //            {
-        //                unifiedData.BoostedBoss = ParseBoostedCreatureFromApi(apiData.boostedBoss, "Boss");
-        //            }
+                    return unifiedData;
+                }
+            }
+            catch (Exception)
+            {
+                // Unified API not available or failed, will fallback to optimized approach
+            }
 
-        //            return unifiedData;
-        //        }
-        //    }
-        //    catch (Exception)
-        //    {
-        //        // Unified API not available or failed, will fallback to optimized approach
-        //    }
-
-        //    return null;
-        //}
+            return null;
+        }
 
         /// <summary>
         /// Optimized approach that minimizes requests by fetching main page and countdowns page only
@@ -189,16 +153,6 @@ namespace CanaryLauncherUpdate
 
             return unifiedData;
         }
-
-        //private static BoostedCreature ParseBoostedCreatureFromApi(dynamic apiCreature, string type)
-        //{
-        //    return new BoostedCreature
-        //    {
-        //        Name = apiCreature.name?.ToString(),
-        //        Type = type,
-        //        ImageUrl = apiCreature.imageUrl?.ToString()
-        //    };
-        //}
 
         private static (BoostedCreature creature, BoostedCreature boss) ExtractBoostedCreaturesFromHtml(string html)
         {
@@ -296,6 +250,58 @@ namespace CanaryLauncherUpdate
             }
 
             return GetFallbackCountdowns();
+        }
+
+        private static async Task<List<NewsItem>> ExtractNewsFromUnifiedHtml(string unifiedHtml)
+        {
+            try
+            {
+                var newsItems = new List<NewsItem>();
+                
+                // Look for news section in the unified HTML
+                var newsMatches = Regex.Matches(unifiedHtml,
+                    @"<tr[^>]*>.*?icon_(\d+)_small\.gif.*?(\d+\.\d+\.\d+).*?href=""([^""]*)"">([^<]+)</a>.*?</tr>",
+                    RegexOptions.IgnoreCase | RegexOptions.Singleline);
+
+                // Limit to first 3 news items to avoid too many individual requests
+                var limitedMatches = newsMatches.Cast<Match>().Take(3);
+                
+                // Create tasks for parallel content fetching
+                var contentTasks = new List<Task<(NewsItem item, string content)>>();
+                
+                foreach (Match match in limitedMatches)
+                {
+                    if (match.Groups.Count >= 5)
+                    {
+                        var newsItem = new NewsItem
+                        {
+                            IconType = match.Groups[1].Value,
+                            Date = match.Groups[2].Value.Trim(),
+                            Url = match.Groups[3].Value,
+                            Title = match.Groups[4].Value.Trim()
+                        };
+
+                        // Create task to fetch content
+                        contentTasks.Add(FetchNewsContentAsync(newsItem));
+                    }
+                }
+
+                // Wait for all content fetching to complete
+                var results = await Task.WhenAll(contentTasks);
+                
+                // Combine results
+                foreach (var (item, content) in results)
+                {
+                    item.Content = content;
+                    newsItems.Add(item);
+                }
+
+                return newsItems;
+            }
+            catch (Exception)
+            {
+                return GetFallbackNews();
+            }
         }
 
         private static async Task<List<NewsItem>> ExtractNewsFromHtml(string archiveHtml)
