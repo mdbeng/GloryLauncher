@@ -70,11 +70,8 @@
   <ItemGroup>
     <Compile Include="src\App.xaml.cs" />
     <Compile Include="src\AssemblyInfo.cs" />
-    <Compile Include="src\BoostedCreatureService.cs" />
     <Compile Include="src\ClientConfig.cs" />
-    <Compile Include="src\CountdownService.cs" />
     <Compile Include="src\MainWindow.xaml.cs" />
-    <Compile Include="src\NewsService.cs" />
     <Compile Include="src\SplashScreen.xaml.cs" />
     <Compile Include="src\UnifiedDataService.cs" />
     <PackageReference Include="Ionic.Zip" Version="1.9.1.8" />

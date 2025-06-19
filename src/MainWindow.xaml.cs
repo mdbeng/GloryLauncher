@@ -255,8 +255,8 @@ namespace CanaryLauncherUpdate
 			}
 			else
 			{
-				// Fallback: Load data if not preloaded (shouldn't happen normally)
-				await LoadDataFallback();
+				// If data not preloaded, try to load it now
+				await LoadDataAsync();
 			}
 
 			// Start the countdown timer to update every second
@@ -284,12 +284,12 @@ namespace CanaryLauncherUpdate
 			// Display preloaded news
 			if (currentNewsItems != null && currentNewsItems.Count > 0)
 			{
-				string formattedNews = NewsService.FormatNewsForDisplayWithHighlight(currentNewsItems, currentNewsIndex);
+				string formattedNews = UnifiedDataService.FormatNewsForDisplayWithHighlight(currentNewsItems, currentNewsIndex);
 				hintsBox.Text = formattedNews;
 			}
 			else
 			{
-				hintsBox.Text = GetDefaultNewsContent();
+				hintsBox.Text = "Unable to load news. Please check your internet connection.";
 			}
 
 			// Display preloaded boosted creatures
@@ -299,7 +299,11 @@ namespace CanaryLauncherUpdate
 			}
 			else
 			{
-				LoadFallbackBoostedCreatures();
+				// Show error message
+				BoostedCreatureName.Text = "Unable to load";
+				BoostedBossName.Text = "Unable to load";
+				BoostedCreatureImage.Source = null;
+				BoostedBossImage.Source = null;
 			}
 
 			// Display preloaded countdowns
@@ -309,16 +313,20 @@ namespace CanaryLauncherUpdate
 			}
 			else
 			{
-				LoadFallbackCountdowns();
+				// Show error message
+				FirstCountdownName.Text = "Unable to load countdowns";
+				FirstCountdownTime.Text = "";
+				SecondCountdownName.Text = "";
+				SecondCountdownTime.Text = "";
 			}
 
 			// Set up client update status
 			SetupClientUpdateStatus();
 		}
 
-		private async Task LoadDataFallback()
+		private async Task LoadDataAsync()
 		{
-			// This is a fallback in case data wasn't preloaded
+			// Load data if not preloaded
 			// Check for launcher updates first
 			await CheckForLauncherUpdate();
 
@@ -787,8 +795,8 @@ del ""%~f0"" >nul 2>&1
 			catch (Exception ex)
 			{
 				Debug.WriteLine($"Fast extraction failed: {ex.Message}");
-				// Fallback to the original method if the fast method fails
-				await Task.Run(() => ExtractZipFallback(zipPath, extractPath));
+				// Re-throw the exception if fast extraction fails
+				throw;
 			}
 		}
 		
@@ -825,19 +833,7 @@ del ""%~f0"" >nul 2>&1
 			File.SetLastWriteTime(destinationPath, entry.LastWriteTime.DateTime);
 		}
 		
-		private void ExtractZipFallback(string path, string extractPath)
-		{
-			// Fallback to original method if fast extraction fails
-			using (Ionic.Zip.ZipFile modZip = Ionic.Zip.ZipFile.Read(path))
-			{
-				// Set extraction behavior
-				modZip.ExtractExistingFile = Ionic.Zip.ExtractExistingFileAction.OverwriteSilently;
-				modZip.ZipErrorAction = Ionic.Zip.ZipErrorAction.Skip;
-				
-				// Extract all entries
-				modZip.ExtractAll(extractPath, Ionic.Zip.ExtractExistingFileAction.OverwriteSilently);
-			}
-		}
+		// Removed ExtractZipFallback method
 
 		private async void Client_DownloadFileCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
 		{
@@ -1132,7 +1128,7 @@ del ""%~f0"" >nul 2>&1
 			if (currentNewsItems != null && currentNewsItems.Count > 0)
 			{
 				// Update the display to highlight which news will be opened next
-				string formattedNews = NewsService.FormatNewsForDisplayWithHighlight(currentNewsItems, currentNewsIndex);
+				string formattedNews = UnifiedDataService.FormatNewsForDisplayWithHighlight(currentNewsItems, currentNewsIndex);
 				Dispatcher.Invoke(() =>
 				{
 					hintsBox.Text = formattedNews;
@@ -1167,11 +1163,7 @@ del ""%~f0"" >nul 2>&1
 		{
 			try
 			{
-				// Show loading message only if not preloaded
-				if (!dataPreloaded)
-				{
-					hintsBox.Text = "Loading news...";
-				}
+				// Don't show loading message, just wait for data
 
 				// Use unified service to fetch all data, but only update news
 				var unifiedData = await UnifiedDataService.FetchAllDataAsync();
@@ -1181,7 +1173,7 @@ del ""%~f0"" >nul 2>&1
 				currentNewsIndex = 0; // Reset to first news item
 				
 				// Format and display the news with highlight
-				string formattedNews = NewsService.FormatNewsForDisplayWithHighlight(unifiedData.News, currentNewsIndex);
+				string formattedNews = UnifiedDataService.FormatNewsForDisplayWithHighlight(unifiedData.News, currentNewsIndex);
 				
 				// Update the UI on the main thread
 				Dispatcher.Invoke(() =>
@@ -1191,37 +1183,17 @@ del ""%~f0"" >nul 2>&1
 			}
 			catch (Exception)
 			{
-				// Fallback to default content if news loading fails
+				// Show error message if news loading fails
 				currentNewsItems = new List<NewsItem>();
 				currentNewsIndex = 0;
 				Dispatcher.Invoke(() =>
 				{
-					hintsBox.Text = GetDefaultNewsContent();
+					hintsBox.Text = "Unable to load news. Please check your internet connection.";
 				});
 			}
 		}
 
-		private string GetDefaultNewsContent()
-		{
-			return "🏆 BIENVENIDOS A GLORYOT!\n\n" +
-				   "🎮 Nuevas Características:\n" +
-				   "• Sistema de Battle Royale mejorado\n" +
-				   "• Duelos 1 vs 1 con ranking\n" +
-				   "• Nuevas zonas de PvP y eventos\n" +
-				   "• Sistema de guilds renovado\n\n" +
-				   "⚡ Actualizaciones Recientes:\n" +
-				   "• Balance de clases mejorado\n" +
-				   "• Nuevos items y equipamiento épico\n" +
-				   "• Optimización de rendimiento\n" +
-				   "• Corrección de bugs críticos\n\n" +
-				   "⚠️ Importante:\n" +
-				   "GloryOT puede ser peligroso. ¡Mantente alerta!\n\n" +
-				   "📅 Próximos Eventos:\n" +
-				   "• Torneo de guilds este fin de semana\n" +
-				   "• Evento de experiencia doble\n" +
-				   "• Nueva quest épica disponible\n\n" +
-				   "Servidor en constante desarrollo y mejora.";
-		}
+		// Removed GetDefaultNewsContent method
 
 		private async Task LoadBoostedCreaturesAsync(bool forceRefresh = false)
 		{
@@ -1246,10 +1218,13 @@ del ""%~f0"" >nul 2>&1
 			}
 			catch (Exception)
 			{
-				// Use fallback data if loading fails
+				// Show error message if loading fails
 				Dispatcher.Invoke(() =>
 				{
-					LoadFallbackBoostedCreatures();
+					BoostedCreatureName.Text = "Unable to load";
+					BoostedBossName.Text = "Unable to load";
+					BoostedCreatureImage.Source = null;
+					BoostedBossImage.Source = null;
 				});
 			}
 		}
@@ -1290,19 +1265,15 @@ del ""%~f0"" >nul 2>&1
 			}
 			catch (Exception)
 			{
-				LoadFallbackBoostedCreatures();
+				// Show error message
+				BoostedCreatureName.Text = "Unable to load";
+				BoostedBossName.Text = "Unable to load";
+				BoostedCreatureImage.Source = null;
+				BoostedBossImage.Source = null;
 			}
 		}
 
-		private void LoadFallbackBoostedCreatures()
-		{
-			BoostedCreatureName.Text = "Loading...";
-			BoostedBossName.Text = "Loading...";
-			
-			// Clear images when loading
-			BoostedCreatureImage.Source = null;
-			BoostedBossImage.Source = null;
-		}
+		// Removed LoadFallbackBoostedCreatures method
 
 		private async void LoadImageAsync(Image imageControl, string imageUrl)
 		{
@@ -1340,7 +1311,7 @@ del ""%~f0"" >nul 2>&1
 			}
 			catch (Exception)
 			{
-				// If image loading fails, we'll just leave it empty or use a placeholder
+				// If image loading fails, we'll just leave it empty
 				Dispatcher.Invoke(() =>
 				{
 					imageControl.Source = null;
@@ -1369,10 +1340,10 @@ del ""%~f0"" >nul 2>&1
 				{
 					Dispatcher.Invoke(() =>
 					{
-						FirstCountdownName.Text = "Loading...";
-						FirstCountdownTime.Text = "--:--:--";
-						SecondCountdownName.Text = "Loading...";
-						SecondCountdownTime.Text = "--:--:--";
+						FirstCountdownName.Text = "";
+						FirstCountdownTime.Text = "";
+						SecondCountdownName.Text = "";
+						SecondCountdownTime.Text = "";
 					});
 				}
 				
@@ -1394,10 +1365,13 @@ del ""%~f0"" >nul 2>&1
 			}
 			catch (Exception)
 			{
-				// Use fallback data if loading fails
+				// Show error message if loading fails
 				Dispatcher.Invoke(() =>
 				{
-					LoadFallbackCountdowns();
+					FirstCountdownName.Text = "Unable to load countdowns";
+					FirstCountdownTime.Text = "";
+					SecondCountdownName.Text = "";
+					SecondCountdownTime.Text = "";
 				});
 			}
 		}
@@ -1440,17 +1414,15 @@ del ""%~f0"" >nul 2>&1
 			}
 			catch (Exception)
 			{
-				LoadFallbackCountdowns();
+				// Show error message
+				FirstCountdownName.Text = "Unable to load countdowns";
+				FirstCountdownTime.Text = "";
+				SecondCountdownName.Text = "";
+				SecondCountdownTime.Text = "";
 			}
 		}
 		
-		private void LoadFallbackCountdowns()
-		{
-			FirstCountdownName.Text = "Battle Royale";
-			FirstCountdownTime.Text = "Loading...";
-			SecondCountdownName.Text = "Double XP";
-			SecondCountdownTime.Text = "Loading...";
-		}
+		// Removed LoadFallbackCountdowns method
 		
 		private void StartCountdownTimer()
 		{

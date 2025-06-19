@@ -8,6 +8,57 @@ using System.Linq;
 
 namespace CanaryLauncherUpdate
 {
+    public class NewsItem
+    {
+        public string Title { get; set; }
+        public string Date { get; set; }
+        public string Content { get; set; }
+        public string Url { get; set; }
+        public string IconType { get; set; }
+    }
+
+    public class BoostedCreature
+    {
+        public string Name { get; set; }
+        public string ImageUrl { get; set; }
+        public string Type { get; set; } // "Creature" or "Boss"
+        public int CreatureId { get; set; }
+        public int Addons { get; set; }
+        public int Head { get; set; }
+        public int Body { get; set; }
+        public int Legs { get; set; }
+        public int Feet { get; set; }
+        public int Mount { get; set; }
+    }
+
+    public class CountdownEvent
+    {
+        public string Name { get; set; }
+        public DateTime EndTime { get; set; }
+        public long TimestampMs { get; set; }
+        
+        // Calculate remaining time from current moment
+        public TimeSpan GetRemainingTime()
+        {
+            var now = DateTime.Now;
+            return EndTime > now ? EndTime - now : TimeSpan.Zero;
+        }
+        
+        // Format the remaining time as a string
+        public string GetFormattedRemainingTime()
+        {
+            var remaining = GetRemainingTime();
+            
+            if (remaining == TimeSpan.Zero)
+                return "Event started!";
+                
+            if (remaining.Days > 0)
+                return $"{remaining.Days}d {remaining.Hours}h {remaining.Minutes}m";
+            else
+                return $"{remaining.Hours}h {remaining.Minutes}m {remaining.Seconds}s";
+        }
+    }
+
     public class UnifiedGameData
     {
         public List<NewsItem> News { get; set; } = new List<NewsItem>();
@@ -58,12 +109,8 @@ namespace CanaryLauncherUpdate
                     return cachedData;
                 }
 
-                // Fallback to optimized multi-request approach if unified API fails
-                var optimizedData = await FetchDataOptimizedAsync();
-                cachedData = optimizedData;
-                lastFetchTime = DateTime.Now;
-                cachedData.IsFromCache = false;
-                return cachedData;
+                // If unified API fails, throw exception instead of fallback
+                throw new Exception("Failed to fetch data from unified API");
             }
             catch (Exception)
             {
@@ -74,8 +121,8 @@ namespace CanaryLauncherUpdate
                     return cachedData;
                 }
                 
-                // Return fallback data if fetching fails and no cache
-                return GetFallbackData();
+                // If no cache available, throw the exception
+                throw;
             }
         }
 
@@ -184,7 +231,8 @@ namespace CanaryLauncherUpdate
                 // Ignore parsing errors
             }
 
-            return GetFallbackCreature();
+            // Return null instead of fallback
+            return null;
         }
 
         private static BoostedCreature ExtractBoostedBoss(string html)
@@ -210,7 +258,8 @@ namespace CanaryLauncherUpdate
                 // Ignore parsing errors
             }
 
-            return GetFallbackBoss();
+            // Return null instead of fallback
+            return null;
         }
 
         private static List<CountdownEvent> ExtractCountdownsFromHtml(string html)
@@ -249,7 +298,8 @@ namespace CanaryLauncherUpdate
                 // Ignore parsing errors
             }
 
-            return GetFallbackCountdowns();
+            // Return empty list instead of fallback
+            return new List<CountdownEvent>();
         }
 
         private static async Task<List<NewsItem>> ExtractNewsFromUnifiedHtml(string unifiedHtml)
@@ -300,7 +350,8 @@ namespace CanaryLauncherUpdate
             }
             catch (Exception)
             {
-                return GetFallbackNews();
+                // Return empty list instead of fallback
+                return new List<NewsItem>();
             }
         }
 
@@ -351,7 +402,8 @@ namespace CanaryLauncherUpdate
             }
             catch (Exception)
             {
-                return GetFallbackNews();
+                // Return empty list instead of fallback
+                return new List<NewsItem>();
             }
         }
 
@@ -394,77 +446,69 @@ namespace CanaryLauncherUpdate
             }
         }
 
-        private static UnifiedGameData GetFallbackData()
+        // Removed all fallback methods and dummy data
+
+        #region News Formatting Methods
+
+        public static string FormatNewsForDisplay(List<NewsItem> newsItems)
         {
-            return new UnifiedGameData
+            if (newsItems == null || !newsItems.Any())
             {
-                News = GetFallbackNews(),
-                Countdowns = GetFallbackCountdowns(),
-                BoostedCreature = GetFallbackCreature(),
-                BoostedBoss = GetFallbackBoss(),
-                FetchTime = DateTime.Now,
-                IsFromCache = false
-            };
+                return "No news available at the moment.";
+            }
+
+            var formattedNews = new List<string>();
+
+            for (int i = 0; i < newsItems.Count; i++)
+            {
+                var item = newsItems[i];
+                string emoji = GetEmojiForIconType(item.IconType);
+                formattedNews.Add($"[{i + 1}] {emoji} {item.Title}\n{item.Date}\n\n{item.Content}\n\n🔗 Click to read full article");
+            }
+
+            return string.Join("\n\n" + new string('═', 35) + "\n\n", formattedNews);
         }
 
-        private static List<NewsItem> GetFallbackNews()
+        public static string FormatNewsForDisplayWithHighlight(List<NewsItem> newsItems, int highlightIndex)
         {
-            return new List<NewsItem>
+            if (newsItems == null || !newsItems.Any())
             {
-                new NewsItem
-                {
-                    Title = "Welcome to GloryOT!",
-                    Date = DateTime.Now.ToString("dd.MM.yyyy"),
-                    Content = "🎮 New Features:\n• Enhanced Battle Royale system\n• 1 vs 1 duels with ranking\n• New PvP zones and events\n• Renovated guild system\n\n⚡ Recent Updates:\n• Improved class balance\n• New epic items and equipment\n• Performance optimization\n• Critical bug fixes",
-                    IconType = "0"
-                },
-                new NewsItem
-                {
-                    Title = "Server Updates",
-                    Date = DateTime.Now.AddDays(-1).ToString("dd.MM.yyyy"),
-                    Content = "📅 Upcoming Events:\n• Guild tournament this weekend\n• Double experience event\n• New epic quest available\n\n⚠️ Important:\nGloryOT can be dangerous. Stay alert!",
-                    IconType = "3"
-                }
-            };
+                return "No news available at the moment.";
+            }
+
+            var formattedNews = new List<string>();
+
+            for (int i = 0; i < newsItems.Count; i++)
+            {
+                var item = newsItems[i];
+                string emoji = GetEmojiForIconType(item.IconType);
+                string prefix = i == highlightIndex ? "► " : "  ";
+                string clickText = i == highlightIndex ? "🔗 NEXT: Click to open this article" : "🔗 Click to read full article";
+                formattedNews.Add($"{prefix}[{i + 1}] {emoji} {item.Title}\n{item.Date}\n\n{item.Content}\n\n{clickText}");
+            }
+
+            return string.Join("\n\n" + new string('═', 35) + "\n\n", formattedNews);
         }
 
-        private static List<CountdownEvent> GetFallbackCountdowns()
+        private static string GetEmojiForIconType(string iconType)
         {
-            return new List<CountdownEvent>
+            switch (iconType)
             {
-                new CountdownEvent
-                {
-                    Name = "Battle Royale",
-                    EndTime = DateTime.Now.AddDays(1).Date.AddHours(20),
-                    TimestampMs = new DateTimeOffset(DateTime.Now.AddDays(1).Date.AddHours(20)).ToUnixTimeMilliseconds()
-                },
-                new CountdownEvent
-                {
-                    Name = "Double XP",
-                    EndTime = DateTime.Now.AddDays(3).Date.AddHours(12),
-                    TimestampMs = new DateTimeOffset(DateTime.Now.AddDays(3).Date.AddHours(12)).ToUnixTimeMilliseconds()
-                }
-            };
+                case "0":
+                    return "🏆"; // General news
+                case "1":
+                    return "📢"; // Announcements
+                case "2":
+                    return "⚔️"; // PvP/Combat
+                case "3":
+                    return "🎉"; // Events
+                case "4":
+                    return "🔧"; // Technical updates
+                default:
+                    return "📰"; // Default
+            }
         }
 
-        private static BoostedCreature GetFallbackCreature()
-        {
-            return new BoostedCreature
-            {
-                Name = "Loading...",
-                Type = "Creature",
-                ImageUrl = null
-            };
-        }
-
-        private static BoostedCreature GetFallbackBoss()
-        {
-            return new BoostedCreature
-            {
-                Name = "Loading...",
-                Type = "Boss",
-                ImageUrl = null
-            };
-        }
+        #endregion
     }
 }

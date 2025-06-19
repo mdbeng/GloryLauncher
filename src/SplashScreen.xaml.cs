@@ -253,7 +253,7 @@ namespace CanaryLauncherUpdate
 			}
 			catch (Exception)
 			{
-				// Use fallback data if unified service fails
+				// If unified service fails, set empty data
 				LoadedNews = new List<NewsItem>();
 				LoadedBoostedCreature = null;
 				LoadedBoostedBoss = null;
@@ -290,7 +290,7 @@ namespace CanaryLauncherUpdate
 			}
 			catch (Exception)
 			{
-				// Ignore image loading errors - main window will handle fallbacks
+				// Ignore image loading errors
 			}
 		}
 
