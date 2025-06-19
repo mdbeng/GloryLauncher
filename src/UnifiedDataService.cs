@@ -64,11 +64,11 @@ namespace CanaryLauncherUpdate
         {
             httpClient.DefaultRequestHeaders.Add("User-Agent", 
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
-            httpClient.Timeout = TimeSpan.FromSeconds(15); // Slightly longer timeout for combined request
+            httpClient.Timeout = TimeSpan.FromSeconds(15);
         }
 
         /// <summary>
-        /// Fetches all launcher data (news, countdowns, boosted creatures) using unified API endpoint with fallback to multi-request approach
+        /// Fetches all launcher data (news, countdowns, boosted creatures) using minimal requests to stay under rate limit
         /// </summary>
         public static async Task<UnifiedGameData> FetchAllDataAsync(bool forceRefresh = false)
         {
@@ -81,19 +81,9 @@ namespace CanaryLauncherUpdate
 
             try
             {
-                // Try the unified API endpoint first
-                var unifiedData = await TryFetchUnifiedApiAsync();
-                if (unifiedData != null)
-                {
-                    cachedData = unifiedData;
-                    lastFetchTime = DateTime.Now;
-                    cachedData.IsFromCache = false;
-                    return cachedData;
-                }
-
-                // Fallback to optimized multi-request approach if unified API fails
-                var optimizedData = await FetchDataOptimizedAsync();
-                cachedData = optimizedData;
+                // Fetch data using minimal requests approach
+                var unifiedData = await FetchUnifiedDataAsync();
+                cachedData = unifiedData;
                 lastFetchTime = DateTime.Now;
                 cachedData.IsFromCache = false;
                 return cachedData;
@@ -113,81 +103,36 @@ namespace CanaryLauncherUpdate
         }
 
         /// <summary>
-        /// Attempts to fetch data from the unified API endpoint
+        /// Fetches data using minimal requests (max 4 total: 2 base + 2 news content)
         /// </summary>
-        private static async Task<UnifiedGameData> TryFetchUnifiedApiAsync()
+        private static async Task<UnifiedGameData> FetchUnifiedDataAsync()
         {
-            try
-            {
-                // The ?apilauncher endpoint doesn't contain news archive, so we need to fetch from multiple endpoints
-                // Create tasks for parallel execution
-                var mainPageTask = httpClient.GetStringAsync(UNIFIED_API_URL);
-                var newsArchiveTask = httpClient.GetStringAsync($"{BASE_URL}/?news/archive");
+            // Create tasks for parallel execution - only 2 base requests
+            var mainPageTask = httpClient.GetStringAsync(UNIFIED_API_URL);
+            var newsArchiveTask = httpClient.GetStringAsync($"{BASE_URL}/?news/archive");
 
-                // Wait for both requests to complete
-                await Task.WhenAll(mainPageTask, newsArchiveTask);
+            // Wait for both requests to complete
+            await Task.WhenAll(mainPageTask, newsArchiveTask);
 
-                var mainPageHtml = await mainPageTask;
-                var newsArchiveHtml = await newsArchiveTask;
-                
-                // Parse the unified HTML response that contains all data
-                var unifiedData = new UnifiedGameData
-                {
-                    FetchTime = DateTime.Now
-                };
-
-                // Extract boosted creatures from the main page
-                var (creature, boss) = ExtractBoostedCreaturesFromHtml(mainPageHtml);
-                unifiedData.BoostedCreature = creature;
-                unifiedData.BoostedBoss = boss;
-
-                // Extract countdowns from the main page
-                unifiedData.Countdowns = ExtractCountdownsFromHtml(mainPageHtml);
-
-                // Extract news from the news archive page
-                unifiedData.News = await ExtractNewsFromHtml(newsArchiveHtml);
-
-                return unifiedData;
-            }
-            catch (Exception)
-            {
-                // Unified API not available or failed, will fallback to optimized approach
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Optimized approach that minimizes requests by fetching main page and countdowns page only
-        /// </summary>
-        private static async Task<UnifiedGameData> FetchDataOptimizedAsync()
-        {
+            var mainPageHtml = await mainPageTask;
+            var newsArchiveHtml = await newsArchiveTask;
+            
+            // Parse the unified HTML response that contains all data
             var unifiedData = new UnifiedGameData
             {
                 FetchTime = DateTime.Now
             };
 
-            // Create tasks for parallel execution
-            var mainPageTask = httpClient.GetStringAsync(BASE_URL);
-            var countdownsTask = httpClient.GetStringAsync($"{BASE_URL}/?countdowns");
-            var newsArchiveTask = httpClient.GetStringAsync($"{BASE_URL}/?news/archive");
-
-            // Wait for all requests to complete
-            await Task.WhenAll(mainPageTask, countdownsTask, newsArchiveTask);
-
-            // Process main page (for boosted creatures)
-            var mainPageHtml = await mainPageTask;
+            // Extract boosted creatures from the main page
             var (creature, boss) = ExtractBoostedCreaturesFromHtml(mainPageHtml);
             unifiedData.BoostedCreature = creature;
             unifiedData.BoostedBoss = boss;
 
-            // Process countdowns page
-            var countdownsHtml = await countdownsTask;
-            unifiedData.Countdowns = ExtractCountdownsFromHtml(countdownsHtml);
+            // Extract countdowns from the main page
+            unifiedData.Countdowns = ExtractCountdownsFromHtml(mainPageHtml);
 
-            // Process news archive page
-            var newsArchiveHtml = await newsArchiveTask;
-            unifiedData.News = await ExtractNewsFromHtml(newsArchiveHtml);
+            // Extract news from the news archive page - limit to 2 news items to stay under 5 requests total
+            unifiedData.News = await ExtractNewsFromHtml(newsArchiveHtml, maxNewsItems: 2);
 
             return unifiedData;
         }
@@ -290,8 +235,7 @@ namespace CanaryLauncherUpdate
             return GetFallbackCountdowns();
         }
 
-        
-        private static async Task<List<NewsItem>> ExtractNewsFromHtml(string archiveHtml)
+        private static async Task<List<NewsItem>> ExtractNewsFromHtml(string archiveHtml, int maxNewsItems = 2)
         {
             try
             {
@@ -301,8 +245,8 @@ namespace CanaryLauncherUpdate
                     @"<tr[^>]*>.*?icon_(\d+)_small\.gif.*?(\d+\.\d+\.\d+).*?href=""([^""]*)"">([^<]+)</a>.*?</tr>",
                     RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
-                // Limit to first 3 news items to avoid too many individual requests
-                var limitedMatches = newsMatches.Cast<Match>().Take(3);
+                // Limit to specified number of news items to avoid too many requests
+                var limitedMatches = newsMatches.Cast<Match>().Take(maxNewsItems);
                 
                 // Create tasks for parallel content fetching
                 var contentTasks = new List<Task<(NewsItem item, string content)>>();
