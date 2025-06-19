@@ -86,30 +86,35 @@ namespace CanaryLauncherUpdate
         {
             try
             {
-                var response = await httpClient.GetAsync(UNIFIED_API_URL);
-                if (response.IsSuccessStatusCode)
+                // The ?apilauncher endpoint doesn't contain news archive, so we need to fetch from multiple endpoints
+                // Create tasks for parallel execution
+                var mainPageTask = httpClient.GetStringAsync(UNIFIED_API_URL);
+                var newsArchiveTask = httpClient.GetStringAsync($"{BASE_URL}/?news/archive");
+
+                // Wait for both requests to complete
+                await Task.WhenAll(mainPageTask, newsArchiveTask);
+
+                var mainPageHtml = await mainPageTask;
+                var newsArchiveHtml = await newsArchiveTask;
+                
+                // Parse the unified HTML response that contains all data
+                var unifiedData = new UnifiedGameData
                 {
-                    var htmlContent = await response.Content.ReadAsStringAsync();
-                    
-                    // Parse the unified HTML response that contains all data
-                    var unifiedData = new UnifiedGameData
-                    {
-                        FetchTime = DateTime.Now
-                    };
+                    FetchTime = DateTime.Now
+                };
 
-                    // Extract boosted creatures from the unified page
-                    var (creature, boss) = ExtractBoostedCreaturesFromHtml(htmlContent);
-                    unifiedData.BoostedCreature = creature;
-                    unifiedData.BoostedBoss = boss;
+                // Extract boosted creatures from the main page
+                var (creature, boss) = ExtractBoostedCreaturesFromHtml(mainPageHtml);
+                unifiedData.BoostedCreature = creature;
+                unifiedData.BoostedBoss = boss;
 
-                    // Extract countdowns from the unified page
-                    unifiedData.Countdowns = ExtractCountdownsFromHtml(htmlContent);
+                // Extract countdowns from the main page
+                unifiedData.Countdowns = ExtractCountdownsFromHtml(mainPageHtml);
 
-                    // Extract news from the unified page
-                    unifiedData.News = await ExtractNewsFromUnifiedHtml(htmlContent);
+                // Extract news from the news archive page
+                unifiedData.News = await ExtractNewsFromHtml(newsArchiveHtml);
 
-                    return unifiedData;
-                }
+                return unifiedData;
             }
             catch (Exception)
             {
@@ -252,58 +257,7 @@ namespace CanaryLauncherUpdate
             return GetFallbackCountdowns();
         }
 
-        private static async Task<List<NewsItem>> ExtractNewsFromUnifiedHtml(string unifiedHtml)
-        {
-            try
-            {
-                var newsItems = new List<NewsItem>();
-                
-                // Look for news section in the unified HTML
-                var newsMatches = Regex.Matches(unifiedHtml,
-                    @"<tr[^>]*>.*?icon_(\d+)_small\.gif.*?(\d+\.\d+\.\d+).*?href=""([^""]*)"">([^<]+)</a>.*?</tr>",
-                    RegexOptions.IgnoreCase | RegexOptions.Singleline);
-
-                // Limit to first 3 news items to avoid too many individual requests
-                var limitedMatches = newsMatches.Cast<Match>().Take(3);
-                
-                // Create tasks for parallel content fetching
-                var contentTasks = new List<Task<(NewsItem item, string content)>>();
-                
-                foreach (Match match in limitedMatches)
-                {
-                    if (match.Groups.Count >= 5)
-                    {
-                        var newsItem = new NewsItem
-                        {
-                            IconType = match.Groups[1].Value,
-                            Date = match.Groups[2].Value.Trim(),
-                            Url = match.Groups[3].Value,
-                            Title = match.Groups[4].Value.Trim()
-                        };
-
-                        // Create task to fetch content
-                        contentTasks.Add(FetchNewsContentAsync(newsItem));
-                    }
-                }
-
-                // Wait for all content fetching to complete
-                var results = await Task.WhenAll(contentTasks);
-                
-                // Combine results
-                foreach (var (item, content) in results)
-                {
-                    item.Content = content;
-                    newsItems.Add(item);
-                }
-
-                return newsItems;
-            }
-            catch (Exception)
-            {
-                return GetFallbackNews();
-            }
-        }
-
+        
         private static async Task<List<NewsItem>> ExtractNewsFromHtml(string archiveHtml)
         {
             try
