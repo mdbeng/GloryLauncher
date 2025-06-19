@@ -721,8 +721,14 @@ del ""%~f0"" >nul 2>&1
 				// No update needed, just start the client
 				if (File.Exists(GetLauncherPath() + "/bin/" + clientExecutableName))
 				{
-					// Start the client and close the launcher
-					Process.Start(GetLauncherPath() + "/bin/" + clientExecutableName);
+					// Start the client with --battleye exit parameter and close the launcher
+					ProcessStartInfo startInfo = new ProcessStartInfo
+					{
+						FileName = GetLauncherPath() + "/bin/" + clientExecutableName,
+						Arguments = "--battleye exit",
+						UseShellExecute = true
+					};
+					Process.Start(startInfo);
 					// Close the launcher completely
 					this.Close();
 				}
