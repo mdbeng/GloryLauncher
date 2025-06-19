@@ -86,7 +86,7 @@ namespace CanaryLauncherUpdate
         }
 
         /// <summary>
-        /// Fetches all launcher data (news, countdowns, boosted creatures) using unified API endpoint with fallback to multi-request approach
+        /// Fetches all launcher data (news, countdowns, boosted creatures) using unified API endpoint
         /// </summary>
         public static async Task<UnifiedGameData> FetchAllDataAsync(bool forceRefresh = false)
         {
@@ -166,41 +166,7 @@ namespace CanaryLauncherUpdate
             return null;
         }
 
-        /// <summary>
-        /// Optimized approach that minimizes requests by fetching main page and countdowns page only
-        /// </summary>
-        private static async Task<UnifiedGameData> FetchDataOptimizedAsync()
-        {
-            var unifiedData = new UnifiedGameData
-            {
-                FetchTime = DateTime.Now
-            };
-
-            // Create tasks for parallel execution
-            var mainPageTask = httpClient.GetStringAsync(BASE_URL);
-            var countdownsTask = httpClient.GetStringAsync($"{BASE_URL}/?countdowns");
-            var newsArchiveTask = httpClient.GetStringAsync($"{BASE_URL}/?news/archive");
-
-            // Wait for all requests to complete
-            await Task.WhenAll(mainPageTask, countdownsTask, newsArchiveTask);
-
-            // Process main page (for boosted creatures)
-            var mainPageHtml = await mainPageTask;
-            var (creature, boss) = ExtractBoostedCreaturesFromHtml(mainPageHtml);
-            unifiedData.BoostedCreature = creature;
-            unifiedData.BoostedBoss = boss;
-
-            // Process countdowns page
-            var countdownsHtml = await countdownsTask;
-            unifiedData.Countdowns = ExtractCountdownsFromHtml(countdownsHtml);
-
-            // Process news archive page
-            var newsArchiveHtml = await newsArchiveTask;
-            unifiedData.News = await ExtractNewsFromHtml(newsArchiveHtml);
-
-            return unifiedData;
-        }
-
+        
         private static (BoostedCreature creature, BoostedCreature boss) ExtractBoostedCreaturesFromHtml(string html)
         {
             var creature = ExtractBoostedCreature(html);
