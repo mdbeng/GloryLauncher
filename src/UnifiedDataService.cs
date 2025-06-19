@@ -22,13 +22,6 @@ namespace CanaryLauncherUpdate
         public string Name { get; set; }
         public string ImageUrl { get; set; }
         public string Type { get; set; } // "Creature" or "Boss"
-        public int CreatureId { get; set; }
-        public int Addons { get; set; }
-        public int Head { get; set; }
-        public int Body { get; set; }
-        public int Legs { get; set; }
-        public int Feet { get; set; }
-        public int Mount { get; set; }
     }
 
     public class CountdownEvent
