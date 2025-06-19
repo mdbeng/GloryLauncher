@@ -8,6 +8,39 @@ using System.Linq;
 
 namespace CanaryLauncherUpdate
 {
+    public class BoostedCreature
+    {
+        public string Name { get; set; }
+        public string Type { get; set; }
+        public string ImageUrl { get; set; }
+    }
+
+    public class CountdownEvent
+    {
+        public string Name { get; set; }
+        public DateTime EndTime { get; set; }
+        public long TimestampMs { get; set; }
+
+        public string GetFormattedRemainingTime()
+        {
+            var timeRemaining = EndTime - DateTime.Now;
+            
+            if (timeRemaining.TotalSeconds <= 0)
+            {
+                return "00:00:00";
+            }
+
+            if (timeRemaining.TotalDays >= 1)
+            {
+                return $"{(int)timeRemaining.TotalDays}d {timeRemaining.Hours:D2}:{timeRemaining.Minutes:D2}:{timeRemaining.Seconds:D2}";
+            }
+            else
+            {
+                return $"{timeRemaining.Hours:D2}:{timeRemaining.Minutes:D2}:{timeRemaining.Seconds:D2}";
+            }
+        }
+    }
+
     public class UnifiedGameData
     {
         public List<NewsItem> News { get; set; } = new List<NewsItem>();
