@@ -322,13 +322,62 @@ namespace CanaryLauncherUpdate
 			// Check for launcher updates first
 			await CheckForLauncherUpdate();
 
-			// Load news, boosted creatures, and countdowns asynchronously
-			await LoadNewsAsync();
-			await LoadBoostedCreaturesAsync();
-			await LoadCountdownsAsync();
+			// Load all data in one unified request instead of separate calls
+			await LoadAllDataUnified();
 
 			// Set up client update status
 			SetupClientUpdateStatus();
+		}
+
+		private async Task LoadAllDataUnified()
+		{
+			try
+			{
+				// Use unified service to fetch all data in one request
+				var unifiedData = await UnifiedDataService.FetchAllDataAsync();
+				
+				// Store all the loaded data
+				currentNewsItems = unifiedData.News ?? new List<NewsItem>();
+				currentBoostedCreature = unifiedData.BoostedCreature;
+				currentBoostedBoss = unifiedData.BoostedBoss;
+				currentCountdowns = unifiedData.Countdowns ?? new List<CountdownEvent>();
+				
+				// Update all displays
+				Dispatcher.Invoke(() =>
+				{
+					// Update news display
+					if (currentNewsItems.Count > 0)
+					{
+						string formattedNews = NewsService.FormatNewsForDisplayWithHighlight(currentNewsItems, currentNewsIndex);
+						hintsBox.Text = formattedNews;
+					}
+					else
+					{
+						hintsBox.Text = GetDefaultNewsContent();
+					}
+					
+					// Update boosted creatures display
+					UpdateBoostedCreaturesDisplay();
+					
+					// Update countdowns display
+					UpdateCountdownsDisplay();
+				});
+			}
+			catch (Exception)
+			{
+				// Use fallback data if unified service fails
+				currentNewsItems = new List<NewsItem>();
+				currentBoostedCreature = null;
+				currentBoostedBoss = null;
+				currentCountdowns = new List<CountdownEvent>();
+				
+				Dispatcher.Invoke(() =>
+				{
+					hintsBox.Text = GetDefaultNewsContent();
+					LoadFallbackBoostedCreatures();
+					LoadFallbackCountdowns();
+				});
+			}
 		}
 
 		private void SetupClientUpdateStatus()
@@ -1100,8 +1149,34 @@ del ""%~f0"" >nul 2>&1
 
 		private async void HintsBox_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
 		{
-			// Right-click to refresh news
-			await LoadNewsAsync();
+			// Right-click to refresh news - force a new request
+			try
+			{
+				hintsBox.Text = "Refreshing news...";
+				
+				// Force refresh by making a new request
+				var unifiedData = await UnifiedDataService.FetchAllDataAsync(forceRefresh: true);
+				
+				// Store the news items for click handling
+				currentNewsItems = unifiedData.News;
+				currentNewsIndex = 0; // Reset to first news item
+				
+				// Format and display the news with highlight
+				if (currentNewsItems != null && currentNewsItems.Count > 0)
+				{
+					string formattedNews = NewsService.FormatNewsForDisplayWithHighlight(currentNewsItems, currentNewsIndex);
+					hintsBox.Text = formattedNews;
+				}
+				else
+				{
+					hintsBox.Text = GetDefaultNewsContent();
+				}
+			}
+			catch (Exception)
+			{
+				// Fallback to default content if refresh fails
+				hintsBox.Text = GetDefaultNewsContent();
+			}
 		}
 
 		private async void HintsBox_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -1122,14 +1197,15 @@ del ""%~f0"" >nul 2>&1
 				}
 				catch (Exception)
 				{
-					// If opening URL fails, refresh news instead
-					await LoadNewsAsync();
+					// If opening URL fails, just cycle to next news item
+					currentNewsIndex = (currentNewsIndex + 1) % currentNewsItems.Count;
+					UpdateNewsDisplay();
 				}
 			}
 			else
 			{
-				// If no news items, refresh news
-				await LoadNewsAsync();
+				// If no news items, show default content
+				hintsBox.Text = GetDefaultNewsContent();
 			}
 		}
 
@@ -1164,8 +1240,13 @@ del ""%~f0"" >nul 2>&1
 			}
 			catch (Exception)
 			{
-				// If opening URL fails, refresh news instead
-				await LoadNewsAsync();
+				// If opening URL fails, just show error briefly
+				string originalText = hintsBox.Text;
+				hintsBox.Text = "Error opening news article";
+				
+				// Reset after 2 seconds
+				await Task.Delay(2000);
+				hintsBox.Text = originalText;
 			}
 		}
 
@@ -1173,27 +1254,38 @@ del ""%~f0"" >nul 2>&1
 		{
 			try
 			{
-				// Show loading message only if not preloaded
+				// Only make request if data is not preloaded or if explicitly refreshing
 				if (!dataPreloaded)
 				{
 					hintsBox.Text = "Loading news...";
+					
+					// Use unified service to fetch all data, but only update news
+					var unifiedData = await UnifiedDataService.FetchAllDataAsync();
+					
+					// Store the news items for click handling
+					currentNewsItems = unifiedData.News;
+					currentNewsIndex = 0; // Reset to first news item
 				}
-
-				// Use unified service to fetch all data, but only update news
-				var unifiedData = await UnifiedDataService.FetchAllDataAsync();
 				
-				// Store the news items for click handling
-				currentNewsItems = unifiedData.News;
-				currentNewsIndex = 0; // Reset to first news item
-				
-				// Format and display the news with highlight
-				string formattedNews = NewsService.FormatNewsForDisplayWithHighlight(unifiedData.News, currentNewsIndex);
-				
-				// Update the UI on the main thread
-				Dispatcher.Invoke(() =>
+				// Format and display the news with highlight (using existing data)
+				if (currentNewsItems != null && currentNewsItems.Count > 0)
 				{
-					hintsBox.Text = formattedNews;
-				});
+					string formattedNews = NewsService.FormatNewsForDisplayWithHighlight(currentNewsItems, currentNewsIndex);
+					
+					// Update the UI on the main thread
+					Dispatcher.Invoke(() =>
+					{
+						hintsBox.Text = formattedNews;
+					});
+				}
+				else
+				{
+					// Use default content if no news available
+					Dispatcher.Invoke(() =>
+					{
+						hintsBox.Text = GetDefaultNewsContent();
+					});
+				}
 			}
 			catch (Exception)
 			{
@@ -1233,8 +1325,8 @@ del ""%~f0"" >nul 2>&1
 		{
 			try
 			{
-				// Only fetch if not preloaded or force refresh is requested
-				if (!dataPreloaded || forceRefresh)
+				// Only fetch if not preloaded or force refresh is explicitly requested
+				if ((!dataPreloaded || forceRefresh) && forceRefresh)
 				{
 					// Use unified service to fetch all data, but only update boosted creatures
 					var unifiedData = await UnifiedDataService.FetchAllDataAsync(forceRefresh);
@@ -1244,7 +1336,7 @@ del ""%~f0"" >nul 2>&1
 					currentBoostedBoss = unifiedData.BoostedBoss;
 				}
 				
-				// Update the UI on the main thread
+				// Update the UI on the main thread using existing data
 				Dispatcher.Invoke(() =>
 				{
 					UpdateBoostedCreaturesDisplay();
@@ -1370,8 +1462,8 @@ del ""%~f0"" >nul 2>&1
 		{
 			try
 			{
-				// Show loading state only if not preloaded
-				if (!dataPreloaded)
+				// Show loading state only if not preloaded and force refresh is requested
+				if (!dataPreloaded && forceRefresh)
 				{
 					Dispatcher.Invoke(() =>
 					{
@@ -1382,8 +1474,8 @@ del ""%~f0"" >nul 2>&1
 					});
 				}
 				
-				// Only fetch if not preloaded or force refresh is requested
-				if (!dataPreloaded || forceRefresh)
+				// Only fetch if not preloaded or force refresh is explicitly requested
+				if ((!dataPreloaded || forceRefresh) && forceRefresh)
 				{
 					// Use unified service to fetch all data, but only update countdowns
 					var unifiedData = await UnifiedDataService.FetchAllDataAsync(forceRefresh);
@@ -1392,7 +1484,7 @@ del ""%~f0"" >nul 2>&1
 					currentCountdowns = unifiedData.Countdowns;
 				}
 				
-				// Update the UI on the main thread
+				// Update the UI on the main thread using existing data
 				Dispatcher.Invoke(() =>
 				{
 					UpdateCountdownsDisplay();
